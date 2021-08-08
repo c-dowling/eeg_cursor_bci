@@ -1,6 +1,6 @@
 from scipy.io import loadmat
 import os
-ghbgb
+
 class Session:
     def __init__(self, file, path):
         self.path = path

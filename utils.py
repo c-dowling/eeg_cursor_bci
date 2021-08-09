@@ -1,6 +1,6 @@
 import pandas as pd
-import numpy as np
 from scipy.io import loadmat
+import numpy as np
 import os
 
 class Session:
@@ -20,7 +20,7 @@ class Session:
         TrialData = bci_data[5]             # Data structure describing trial level metrics
         metadata = bci_data[6]              # Participant and session level demographic information
         chaninfo = bci_data[7]              # Information about individual EEG channels
-
+        
         return data, time, positionx, positiony, SRATE, TrialData, metadata, chaninfo
 
     def get_trial_data(self, trial_n):
@@ -41,37 +41,90 @@ class Session:
         result = trial_data[7]              # Outcome of the trial: success or failure
         forcedresult = trial_data[8]        # Outcome of the trial with forced target selection for timeout trials: success or failure
         artefact = trial_data[9]            # Does the trial contain an artefact?
+
         return tasknumber, runnumber, trialnumber, targetnumber, triallength, targethitnumber, resultind, result, \
                forcedresult, artefact
 
-
     def cut_eeg(self, trial_n, pre, post):
         """
-        Removes all EEG data before/after pre/post values.
+        Removes all data before/after pre/post values for a given trial.
 
         Parameters:
             - trial_n (int): trial number to split
             - pre (int): number of ms before target presentation to include in cut (includes bound)
             - post (int): number of ms after target presentation to include in cut (includes bound)
+
+        Returns:
+            - trial_cut (DataFrame): EEG data (channels x time)
         """
         data, time, positionx, positiony, SRATE, TrialData, metadata, chaninfo = self.get_bci_data()
         trial_data = data[0][trial_n]
         trial_time = time[0][trial_n]
         dataframe = pd.DataFrame(trial_data, columns=trial_time[0])
-        cols_to_keep = list(range(-pre,post+1))
-        data_cut = dataframe[cols_to_keep]
+        range_t = list(range(-pre,post+1))
+        trial_cut = dataframe[range_t]
 
-        return data_cut
+        return trial_cut
 
 
-#    def bin_trial(self, binlength, overlap):
+    def bin_trial(self, trial_cut, binlength=500, delay=40):
         """
         Splits a trial into multiple overlapping bins of EEG data.
         
         Parameters:
-        """
+            - trial_cut (df) - A slice of EEG data (channel x time)
+            - binlength (int) - Length of each bin (ms)
+            - delay (int) - Delay between bins (ms)
 
-#    def get_x_y(self):
+        Returns:
+            - bins (list) - A list containing EEG arrays (channels x time)
         """
-        Returns labelled input data as
+        n_bins = (trial_cut.shape[1]-binlength)//delay         # Calculate the number of bins we can get from this trial
+        bins = []
+        start_t = 0                                            # Set a counter for which timepoint to start each bin on
+        for i in range(1,n_bins):
+            bin = trial_cut.iloc[:,start_t:start_t+binlength]
+            bins.append(bin.to_numpy())
+            start_t += delay                                   # Add our delay value to the counter
+
+        return bins
+
+
+    def get_x_y(self, pre=None, post=None):
         """
+        Removes all data before/after pre/post values for all trials.
+
+        Parameters:
+            - pre (int): If True will set number of ms before target presentation to include in cut (includes bound)
+            - post (int): If True will set number of ms after target presentation to include in cut (includes bound)
+
+        Returns:
+            - inputs (array): A 3D array of EEG data for each bin (bin x channels x time)
+            - labels (array): A 1D array of intended cursor direction for each bin
+        """
+        data, time, positionx, positiony, SRATE, TrialData, metadata, chaninfo = self.get_bci_data()
+
+        inputs = []
+        labels = []
+        for trial in range(0,len(data[0])):
+            tasknumber, runnumber, trialnumber, targetnumber, triallength, targethitnumber, resultind, result, \
+            forcedresult, artefact = self.get_trial_data(trial)
+
+            # Set our post value to be the full trial length by default
+            if post == None:
+                post = resultind[0][0]-6841      # Not sure why 6841 but it returns an error if I choose a lower number
+            # Set our pre value to be the start of the feedback-control period
+            if pre == None:
+                pre = -2000
+
+            trial_cut = self.cut_eeg(trial, pre, post)
+            bins = self.bin_trial(trial_cut)
+            label = np.repeat(targetnumber,len(bins))
+            inputs.append(bins)
+            labels.append(label)
+
+        inputs = np.concatenate(inputs,axis=0)
+        labels = np.concatenate(labels,axis=0)
+
+        return inputs, labels
+

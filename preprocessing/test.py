@@ -2,7 +2,7 @@ import numpy as np
 from utils import Session
 
 file = "S1_Session_1.mat"
-path = "../data"
+path = "../../data"
 
 # Initialise a Session object
 a = Session(file,path)

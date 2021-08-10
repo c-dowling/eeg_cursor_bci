@@ -22,6 +22,9 @@ class Session:
         self.metadata = bci_data[6]              # Participant and session level demographic information
         self.chaninfo = bci_data[7]              # Information about individual EEG channels
 
+    def get_num_trials(self):
+        return len(self.data)
+
     def get_trial_data(self, trial_n):
         """
         Returns the trial information for a given trial:
@@ -70,14 +73,14 @@ class Session:
         return trial_cut
 
 
-    def bin_trial(self, trial_cut, binlength=500, delay=40):
+    def bin_trial(self, trial_cut, binlength=500, delay=40, overlap=0):
         """
         Splits a trial into multiple overlapping bins of EEG data.
         
         Parameters:
             - trial_cut (DataFrame) - A slice of EEG data (channel x time)
-            - binlength (int) - Length of each bin (ms)
-            - delay (int) - Delay between bins (ms)
+            - binlength (int) - Length of each bin (samples)
+            - delay (int) - Delay between bins (samples)
         Returns:
             - bins (list) - A list containing EEG arrays (channels x time)
         """

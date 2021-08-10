@@ -7,6 +7,8 @@ from utils import Session
 
 def session2windows(path, file, temporalDimension = False):
     sess = Session(file, path)
+    data = sess.cut_eeg
+
 
 def dataset2windows(path, temp_dir):
     files = os.listdir(path)

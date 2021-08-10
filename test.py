@@ -15,7 +15,7 @@ forcedresult, artefact = a.get_trial_data(trial_n=25)
 print(f"End of feedback control (ms): {resultind[0][0]}")
 
 # Get the EEG data for trial 25 (feedback control period only)
-datacut = a.cut_eeg(25, -2000, resultind[0][0]-1001)
+datacut = a.cut_eeg(25, -2000, int(triallength[0][0]*1000))
 print(datacut)
 
 
@@ -23,10 +23,11 @@ print(datacut)
 inputs, labels = a.get_x_y()
 
 
-# n_trials per session = 450
-# n_bins per trial = 16 (this is technically wrong, it should be variable but the resultind variable isn't working right in the get_x_y function)
+# n_trials = 450 - (n_trials < 500ms)
+# n_bins per trial = variable
 # n_channels = 62
 # len_bin = 500ms
 
-# Our values should be 7200 (n_trials x n_bins_per_trial), 62 (n_channels), 500 (length of bins)
+# Our dimensions should be N (n_trials x n_bins_per_trial), 62 (n_channels), 500 (length of bins)
 print(f"Dimensions of input and labels: {inputs.shape,labels.shape}")
+

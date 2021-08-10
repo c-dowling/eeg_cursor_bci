@@ -72,7 +72,7 @@ class Session:
         Splits a trial into multiple overlapping bins of EEG data.
         
         Parameters:
-            - trial_cut (df) - A slice of EEG data (channel x time)
+            - trial_cut (DataFrame) - A slice of EEG data (channel x time)
             - binlength (int) - Length of each bin (ms)
             - delay (int) - Delay between bins (ms)
 
@@ -92,7 +92,7 @@ class Session:
 
     def get_x_y(self, pre=None, post=None):
         """
-        Removes all data before/after pre/post values for all trials.
+        Returns two arrays containing the input data for the model and corresponding labels.
 
         Parameters:
             - pre (int): If True will set number of ms before target presentation to include in cut (includes bound)
@@ -104,26 +104,29 @@ class Session:
         """
         data, time, positionx, positiony, SRATE, TrialData, metadata, chaninfo = self.get_bci_data()
 
-        inputs = []
-        labels = []
+        inputs = []         # Create a blank list to store our input data arrays
+        labels = []         # Create another list to store the label arrays
         for trial in range(0,len(data[0])):
+            if trial%50==0:
+                print(f"Trial: {trial}/{len(data[0])}")
             tasknumber, runnumber, trialnumber, targetnumber, triallength, targethitnumber, resultind, result, \
             forcedresult, artefact = self.get_trial_data(trial)
 
-            # Set our post value to be the full trial length by default
+            # Set our post_trial value to be the full trial length by default
             if post == None:
-                post = resultind[0][0]-6841      # Not sure why 6841 but it returns an error if I choose a lower number
-            # Set our pre value to be the start of the feedback-control period
+                post_trial = int((triallength[0][0]*1000))
+            # Set our pre_trial value to be the start of the feedback-control period (2000ms after 0)
             if pre == None:
-                pre = -2000
+                pre_trial = -2000
 
-            trial_cut = self.cut_eeg(trial, pre, post)
-            bins = self.bin_trial(trial_cut)
-            label = np.repeat(targetnumber,len(bins))
+            trial_cut = self.cut_eeg(trial, pre_trial, post_trial)      # Cut all the EEG data that we don't care about
+            bins = self.bin_trial(trial_cut)                            # Split the trial into multiple bins
+            label = np.repeat(targetnumber,len(bins))                   # Make an array of label numbers of the same size
             inputs.append(bins)
             labels.append(label)
 
-        inputs = np.concatenate(inputs,axis=0)
+        inputs = [input for input in inputs if input]           # Remove any empty arrays (caused by trials <500ms)
+        inputs = np.concatenate(inputs,axis=0)                  # Convert our list of arrays into a single array
         labels = np.concatenate(labels,axis=0)
 
         return inputs, labels

@@ -117,3 +117,4 @@ class Session:
         inputs = [input for input in inputs if input]           # Remove any empty arrays (caused by trials <500ms)
         inputs = np.concatenate(inputs,axis=0)                  # Convert our list of arrays into a single array
         labels = np.concatenate(labels,axis=0)
+        return inputs, labels

@@ -43,7 +43,7 @@ class Session:
         return taskNumber, runNumber, trialNumber, targetNumber, trialLength, targetHitNumber, resultInd, result, \
                forcedResult, artefact
 
-    def cut_eeg(self, trial_n, pre, post):
+    def cut_eeg(self, trial_n, pre=None, post=None):
         """
         Removes all data before/after pre/post values for a given trial.
         Parameters:
@@ -53,10 +53,18 @@ class Session:
         Returns:
             - trial_cut (DataFrame): EEG data (channels x time)
         """
+        _, _, _, _, triallength, _, _, _, _, _ = self.get_trial_data(trial_n)
+        # Set our post_trial value to be the full trial length by default
+        if post == None:
+            post_trial = int((triallength[0][0]*1000))+2000
+        # Set our pre_trial value to be the start of the feedback-control period (2000ms after 0)
+        if pre == None:
+            pre_trial = -2000
+
         trial_data = self.data[0][trial_n]
         trial_time = self.time[0][trial_n]
         dataframe = pd.DataFrame(trial_data, columns=trial_time[0])
-        range_t = list(range(-pre,post+1))
+        range_t = list(range(-pre_trial,post_trial+1))
         trial_cut = dataframe[range_t]
 
         return trial_cut
@@ -73,10 +81,10 @@ class Session:
         Returns:
             - bins (list) - A list containing EEG arrays (channels x time)
         """
-        n_bins = (trial_cut.shape[1]-binlength)//delay         # Calculate the number of bins we can get from this trial
+        n_bins = ((trial_cut.shape[1]-binlength)//delay)+1         # Calculate the number of bins we can get from this trial
         bins = []
         start_t = 0                                            # Set a counter for which timepoint to start each bin on
-        for i in range(1,n_bins):
+        for i in range(1,n_bins+1):
             bin = trial_cut.iloc[:,start_t:start_t+binlength]
             bins.append(bin.to_numpy())
             start_t += delay                                   # Add our delay value to the counter
@@ -99,16 +107,9 @@ class Session:
         for trial in range(0,len(self.data[0])):
             if trial%50==0:
                 print(f"Trial: {trial}/{len(self.data[0])}")
-            _, _, _, targetnumber, triallength, _, _, _, _, _ = self.get_trial_data(trial)
+            _, _, _, targetnumber, _, _, _, _, _, _ = self.get_trial_data(trial)
 
-            # Set our post_trial value to be the full trial length by default
-            if post == None:
-                post_trial = int((triallength[0][0]*1000))
-            # Set our pre_trial value to be the start of the feedback-control period (2000ms after 0)
-            if pre == None:
-                pre_trial = -2000
-
-            trial_cut = self.cut_eeg(trial, pre_trial, post_trial)      # Cut all the EEG data that we don't care about
+            trial_cut = self.cut_eeg(trial, pre, post)      # Cut all the EEG data that we don't care about
             bins = self.bin_trial(trial_cut)                            # Split the trial into multiple bins
             label = np.repeat(targetnumber,len(bins))                   # Make an array of label numbers of the same size
             inputs.append(bins)

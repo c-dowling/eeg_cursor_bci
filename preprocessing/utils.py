@@ -57,9 +57,13 @@ class Session:
         # Set our post_trial value to be the full trial length by default
         if post == None:
             post_trial = int((triallength[0][0]*1000))+2000
+        else:
+            post_trial = post
         # Set our pre_trial value to be the start of the feedback-control period (2000ms after 0)
         if pre == None:
             pre_trial = -2000
+        else:
+            pre_trial = pre
 
         trial_data = self.data[0][trial_n]
         trial_time = self.time[0][trial_n]

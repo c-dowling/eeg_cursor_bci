@@ -3,24 +3,24 @@ from posix import listdir
 from utils import Session
 
 
-
-
 def session2windows(path, file, temporalDimension = False):
     sess = Session(file, path)
-    data = sess.cut_eeg
+    n_trials = ...
+    for t in range(1,n_trials+1):
+        trial_data = sess.cut_eeg(t)
+        if(not temporalDimension):
+            #TODO
+            raise NotImplementedError("Functionality not available :(")
+        else:
+            #TODO
+            raise NotImplementedError("Functionality not available :(")
+
 
 
 def dataset2windows(path, temp_dir):
     files = os.listdir(path)
     for f in files:
         session2windows(path, f, temp_dir)
-
-
-
-
-
-
-
 
 
 

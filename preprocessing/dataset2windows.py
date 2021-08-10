@@ -3,24 +3,29 @@ from posix import listdir
 from utils import Session
 
 
-def session2windows(path, file, temporalDimension = False):
+def session2windows(path, file, d, w, o, temporalDimension = False):
     sess = Session(file, path)
-    n_trials = ...
+    D = d*sess.SRATE
+    W = w*sess.SRATE
+    O = int(W*o)
+    n_trials = sess.get_num_trials()
     for t in range(1,n_trials+1):
         trial_data = sess.cut_eeg(t)
         if(not temporalDimension):
             #TODO
+            sess.bin_trial(trial_data, bin_length)
             raise NotImplementedError("Functionality not available :(")
+            
         else:
             #TODO
             raise NotImplementedError("Functionality not available :(")
 
 
 
-def dataset2windows(path, temp_dir):
+def dataset2windows(path, temp_dir, d, w, o):
     files = os.listdir(path)
     for f in files:
-        session2windows(path, f, temp_dir)
+        session2windows(path, f, d, w, o, temp_dir)
 
 
 
@@ -35,4 +40,7 @@ if __name__ == "__main__":
             raise ValueError("temp_dim must be either 1 or 0")
     except:
         sys.exit()
-    dataset2windows(sys.argv[1], temp_dim)
+    d = 500
+    w = 40
+    o = 0
+    dataset2windows(sys.argv[1], temp_dim, d, w, o)

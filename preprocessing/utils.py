@@ -9,7 +9,7 @@ class Session:
         self.file = file                    # filename (e.g. "S1_Session_1.mat")
         self.datadir = os.path.join(path,file)
         mat_file = loadmat(self.datadir)
-        self.get_bci_data(self.mat_file)
+        self.get_bci_data(mat_file)
 
     def get_bci_data(self, mat_file):
         bci_data = mat_file["BCI"][0][0]

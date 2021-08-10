@@ -11,7 +11,7 @@ def session2windows(path, file, temporalDimension = False):
 def dataset2windows(path, temp_dir):
     files = os.listdir(path)
     for f in files:
-        session2windows(f)
+        session2windows(path, f, temp_dir)
 
 
 

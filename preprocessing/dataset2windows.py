@@ -50,6 +50,8 @@ if __name__ == "__main__":
     if len(sys.argv) != 5:
         sys.exit("Usage : python session2samples.py input_dir temp_dim\n\t \
         - input_dir: Directory where sessions are located\n\t \
+        - output_dir: Directory where windowed sessions will be located\n\t \
+        - file_name: The file name for the output files (ie:files will be named file_name_S1_Session1,file_name_S2_Session1 ...)\
         - temp_dim: split data in temporal windows (1) or return it as an image (0)")
     try:
         temp_dim = int(sys.argv[4])

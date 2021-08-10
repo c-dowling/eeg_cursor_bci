@@ -78,7 +78,7 @@ class Session:
         return trial_cut
 
 
-    def bin_trial(self, trial_cut, num_trial, file_name, sr, binlength=500, delay=40, overlap=0, temp_dim=0, save=True):
+    def bin_trial(self, trial_cut, num_trial, data, labels, binlength=500, delay=40, overlap=0, temp_dim=0, save=True):
         """
         Splits a trial into multiple overlapping bins of EEG data.
         
@@ -90,23 +90,12 @@ class Session:
             - bins (list) - A list containing EEG arrays (channels x time)
         """
         if(temp_dim==0):
-            print(trial_cut.shape[1])
-            n_bins = (trial_cut.shape[1]-(binlength-delay))//delay         # Calculate the number of bins we can get from this trial
-            bins = []                                            # Set a counter for which timepoint to start each bin on
+            #print(trial_cut.shape[1])
+            n_bins = (trial_cut.shape[1]-(binlength-delay))//delay         # Calculate the number of bins we can get from this trial                                           # Set a counter for which timepoint to start each bin on
             for i in range(0,n_bins):
-                bin = trial_cut[:, i*delay : i*delay+binlength]
-                label = self.get_target_num(num_trial)
-                if save:
-                    hf = h5py.File(file_name+'_trial_{}_window_{}'.format(num_trial+1,i+1)+'.h5', 'w')
-                    hf.create_dataset('data', data=bin)
-                    hf.create_dataset('label', data=label)
-                    hf.close()
-                    #raise NotImplementedError("Function not available yet :(")
-                else:
-                    bins.append(bin)
-
-            if not save:
-                return bins
+                data.append(trial_cut[:, i*delay : i*delay+binlength])
+                labels.append(self.get_target_num(num_trial))
+            return data, labels
         else:
             raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
 

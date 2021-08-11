@@ -29,4 +29,4 @@ inputs, labels = a.get_inputs_labels()
 # len_bin = 500ms
 
 # Our dimensions should be N (n_trials x n_bins_per_trial), 62 (n_channels), 500 (length of bins)
-print(inputs[3])
+print(len(labels))

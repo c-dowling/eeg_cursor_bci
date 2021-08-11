@@ -103,7 +103,6 @@ class Session:
             raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
 
 
-
     def get_inputs_labels(self, pre=None, post=None):
         """
         Returns two arrays containing the input data for the model and corresponding labels.

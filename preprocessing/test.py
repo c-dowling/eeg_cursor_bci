@@ -20,7 +20,7 @@ print(datacut)
 
 
 # We can call the below function to get an array containing each of our inputs and labels
-inputs, labels = a.get_x_y()
+inputs, labels = a.get_inputs_labels()
 
 
 # n_trials = 450 - (n_trials < 500ms)
@@ -29,5 +29,4 @@ inputs, labels = a.get_x_y()
 # len_bin = 500ms
 
 # Our dimensions should be N (n_trials x n_bins_per_trial), 62 (n_channels), 500 (length of bins)
-print(f"Dimensions of input and labels: {inputs.shape,labels.shape}")
-
+print(inputs[3])

@@ -41,10 +41,9 @@ def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o):
         data = []
         labels = []
         data, labels = session2windows(in_dir, f, d, w, o, data, labels, temp_dim)
-        # https://pytorch.org/docs/0.3.0/data.html#torch.utils.data.ConcatDataset
         hf = h5py.File(os.path.join(out_dir,file_name+"_"+os.path.splitext(f)[0]+'.h5'), 'w')
         hf.create_dataset('data', data=data)
-        hf.create_dataset('label', data=labels)
+        hf.create_dataset('labels', data=labels)
         hf.close()
 
 

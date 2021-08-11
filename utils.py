@@ -20,9 +20,9 @@ class CustomDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        data = torch.FloatTensor(self.data[idx,:,:])
-        label = torch.LongTensor(self.labels[idx]).squeeze(-1).squeeze(-1)
-        
+        data = torch.FloatTensor(self.data[idx,:,:]).unsqueeze(0)
+        label = torch.LongTensor(self.labels[idx]).squeeze()
+
         return data, label
 
 def concat_datasets(input_dir):

@@ -1,5 +1,8 @@
 import os, sys
-from posix import listdir
+try:
+    from posix import listdir
+except ModuleNotFoundError:
+    from os import listdir
 from utils import Session
 import h5py
 

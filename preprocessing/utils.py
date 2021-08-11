@@ -53,17 +53,20 @@ class Session:
         return taskNumber, runNumber, trialNumber, targetNumber, trialLength, targetHitNumber, resultInd, result, \
                forcedResult, artefact
 
-    def cut_eeg(self, trial_n, sr, start_t=None, end_t=None):
+    def cut_eeg(self, trial_n, sr=None, start_t=None, end_t=None):
         """
         Removes all data before/after pre/post values for a given trial.
         Parameters:
             - trial_n (int): trial number to split
+            - sr (int): sample rate
             - pre (int): number of ms before target presentation to include in cut (includes bound)
             - post (int): number of ms after target presentation to include in cut (includes bound)
         Returns:
             - trial_cut (DataFrame): EEG data (channels x time)
         """
-        triallength = self.get_trial_data(trial_n)
+        if sr == None:
+            sr = self.SRATE
+
         # Set our post_trial value to be the full trial length by default
         if end_t == None:
             end_t = int(-1 * sr)
@@ -99,10 +102,8 @@ class Session:
         else:
             raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
 
-        
 
-
-    def get_x_y(self, pre=None, post=None):
+    def get_inputs_labels(self, pre=None, post=None):
         """
         Returns two arrays containing the input data for the model and corresponding labels.
         Parameters:
@@ -116,16 +117,9 @@ class Session:
         labels = []         # Create another list to store the label arrays
         for trial in range(0,len(self.data[0])-1):
             if trial%50==0:
-                print(f"Trial: {trial}/{len(self.data[0])}")
-            _, _, _, targetnumber, _, _, _, _, _, _ = self.get_trial_data(trial)
+                print(f"Extracting Trial Data: {trial}/{len(self.data[0])}")
 
-            trial_cut = self.cut_eeg(trial, pre, post)      # Cut all the EEG data that we don't care about
-            bins = self.bin_trial(trial_cut)                            # Split the trial into multiple bins
-            label = np.repeat(targetnumber,len(bins))                   # Make an array of label numbers of the same size
-            inputs.append(bins)
-            labels.append(label)
+            trial_cut = self.cut_eeg(trial, pre, post)
+            inputs, labels = self.bin_trial(trial_cut, trial, inputs, labels)
 
-        inputs = [input for input in inputs if input]           # Remove any empty arrays (caused by trials <500ms)
-        inputs = np.concatenate(inputs,axis=0)                  # Convert our list of arrays into a single array
-        labels = np.concatenate(labels,axis=0)
         return inputs, labels

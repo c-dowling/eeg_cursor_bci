@@ -17,7 +17,7 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def train(model, dataloaders, optimizer, criterion, device, num_epochs):
+def train(model, dataloaders, optimizer, criterion, device, num_epochs=10, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
     for epoch in range(num_epochs):
         for phase in ['Train', 'Valid']:
@@ -51,6 +51,11 @@ def train(model, dataloaders, optimizer, criterion, device, num_epochs):
                 epoch_inputs += len(labels)
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
+
+        if callback:
+            validation_loss = epoch_loss / epoch_inputs
+            if callback(model, validation_loss, epoch):
+                break
 
 
 def test(model, dataloaders, criterion, device):

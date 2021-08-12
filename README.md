@@ -5,10 +5,19 @@
 
 ### How to use this Repo
 
-### Requirements
-- Python - v3.8
-- Numpy - v1.20.1
-- SciPy - v.1.6.2
+### Installation
+
+Install the dependencies in your current environment:
+
+```bash
+pip install -r requirements.txt
+```
+
+Or create a conda environment with the dependencies:
+
+```bash
+conda env create -f environment.yml
+```
 
 
 ### Contributors

@@ -1,0 +1,5 @@
+{
+    "in_dir": "../bin_data",
+    "batch_size": 64
+
+}

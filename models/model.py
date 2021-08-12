@@ -3,9 +3,10 @@ import torch.nn as nn
 
 class BCINet(nn.Module):
     """From Schirrmeister et al., 2017 (https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/hbm.23730)
-       Alternatively, use: https://robintibor.github.io/braindecode/index.html    
-   
+       Alternatively, use: https://robintibor.github.io/braindecode/index.html
+
     """
+
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(

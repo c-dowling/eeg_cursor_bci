@@ -50,6 +50,7 @@ def concat_datasets(input_dir):
     file_names = os.listdir(input_dir)
     file_names.sort()
     for f in file_names:
-        datasets.append(CustomDataset(os.path.join(input_dir,f)))
+        if (f.endswith('.h5')):
+            datasets.append(CustomDataset(os.path.join(input_dir,f)))
     datasets = torch.utils.data.ConcatDataset(datasets)
     return datasets

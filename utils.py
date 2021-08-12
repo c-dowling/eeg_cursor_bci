@@ -4,10 +4,10 @@ import numpy as np
 import random
 import torch.nn.functional as F
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 # Create writer to track training and testing evolution
-writer = SummaryWriter()
+#writer = SummaryWriter()
 
 def set_seed(seed):
     """Sets rng using seed for reproducibility."""

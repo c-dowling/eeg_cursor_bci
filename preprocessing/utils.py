@@ -88,7 +88,7 @@ class Session:
         result = self.trialData[trial_n][7].item()
         forcedResult = self.trialData[trial_n][8].item()
         artefact = self.trialData[trial_n][9].item()
-        print(type(taskNumber), type(runNumber), type(trialNumber), type(targetNumber), type(trialLength), type(targetHitNumber), type(resultInd), type(result), type(forcedResult), type(artefact))
+
         return taskNumber, runNumber, trialNumber, targetNumber, trialLength, targetHitNumber, resultInd, result, \
                forcedResult, artefact
 

@@ -1,5 +1,8 @@
 import os, sys
-from posix import listdir
+try:
+    from posix import listdir
+except ModuleNotFoundError:
+    from os import listdir
 from utils import Session
 import h5py
 import numpy as np
@@ -76,5 +79,5 @@ if __name__ == "__main__":
 
     if(not os.path.exists(sys.argv[2])):
         os.mkdir(sys.argv[2])
-
+        
     dataset2windows(sys.argv[1], sys.argv[2], sys.argv[3], temp_dim, d, w, o)

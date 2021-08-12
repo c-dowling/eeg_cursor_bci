@@ -4,6 +4,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
+
+
+# Create writer to track training and testing evolution
+writer = SummaryWriter()
 
 
 def set_seed(seed):
@@ -51,6 +56,9 @@ def train(model, dataloaders, optimizer, criterion, device, num_epochs=10, callb
                 epoch_inputs += len(labels)
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
+ 
+            writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
+            writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)
 
         if callback:
             validation_loss = epoch_loss / epoch_inputs

@@ -6,6 +6,7 @@ class TCNBlock(nn.Module):
         """
         Temporal convolution block based on a residual block from Sulabh Kumra and Christopher Kanan 2017
         https://www.researchgate.net/publication/310953119_Robotic_Grasp_Detection_using_Deep_Convolutional_Neural_Networks
+        Also see this: https://unit8.co/resources/temporal-convolutional-networks-and-forecasting/
         """
         super().__init__()
         # Padding on the left side

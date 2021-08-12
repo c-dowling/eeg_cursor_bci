@@ -1,8 +1,6 @@
-import pandas as pd
 from scipy.io import loadmat
 import numpy as np
-import os
-import h5py
+import os,sys
 
 class Session:
     def __init__(self, file, path):
@@ -78,7 +76,7 @@ class Session:
         return trial_cut
 
 
-    def bin_trial(self, trial_cut, num_trial, data, labels, binlength=500, delay=40, overlap=0, temp_dim=0, save=True):
+    def bin_trial(self, trial_cut, num_trial, data, labels, window, overlap, bin=500, temp_dim=0, save=True):
         """
         Splits a trial into multiple overlapping bins of EEG data.
         
@@ -90,14 +88,25 @@ class Session:
             - bins (list) - A list containing EEG arrays (channels x time)
         """
         if(temp_dim==0):
-            #print(trial_cut.shape[1])
-            n_bins = (trial_cut.shape[1]-(binlength-delay))//delay         # Calculate the number of bins we can get from this trial                                           # Set a counter for which timepoint to start each bin on
+            n_bins = (trial_cut.shape[1]-overlap)//(window-overlap)         # Calculate the number of bins we can get from this trial                                           # Set a counter for which timepoint to start each bin on
             for i in range(0,n_bins):
-                data.append(trial_cut[:, i*delay : i*delay+binlength])
+                data.append(trial_cut[:, i*(window-overlap) : i*(window-overlap)+window])
                 labels.append(self.get_target_num(num_trial))
-            return data, labels
+            
         else:
-            raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
+            if(bin%(window-overlap)!=0):
+                sys.exit("Bins of {} samples cannot be divided into windows of {} samples with {} overlapping samples".format(bin,window,overlap))
+            n_timesteps = (trial_cut.shape[1]-overlap)//(window-overlap)
+            timestepsInBin = (bin-overlap) // (window-overlap)
+            for i in range (0,n_timesteps-timestepsInBin+1):
+                windows = []
+                for t in range(0,timestepsInBin):
+                    windows.append(trial_cut[:, (i+t)*(window-overlap):(i+t)*(window-overlap)+window])
+                data.append(windows)
+                labels.append(self.get_target_num(num_trial))
+            
+        return data, labels
+            #raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
 
         
 

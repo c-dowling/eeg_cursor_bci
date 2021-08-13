@@ -4,10 +4,10 @@ import numpy as np
 import random
 import torch.nn.functional as F
 from tqdm import tqdm
-#from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 # Create writer to track training and testing evolution
-#writer = SummaryWriter()
+writer = SummaryWriter()
 
 def set_seed(seed):
     """Sets rng using seed for reproducibility."""
@@ -93,9 +93,9 @@ def test(model, dataloader, criterion, params):
     test_correct = 0
     test_inputs = 0
 
-    bar = tqdm(enumerate(dataloader['Test']), total=len(dataloader['Test']), desc='Test: ')
+    bar = tqdm(enumerate(dataloader), total=len(dataloader), desc='Test: ')
     with torch.no_grad():
-        for batch, (inputs, labels) in bar:
+        for _, (inputs, labels) in bar:
             inputs = inputs.to(params['device'])
             labels = labels.to(params['device'])
 

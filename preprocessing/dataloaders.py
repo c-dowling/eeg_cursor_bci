@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-import h5py
+import h5pickle as h5py
 import sys, os
 import torch
 

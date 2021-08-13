@@ -93,7 +93,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == 'Train'):
                     outputs = model(inputs)
-                    loss = criterion(outputs, labels - 1)
+                    loss = criterion(outputs, labels)
 
                     if phase == 'Train':
                         loss.backward()

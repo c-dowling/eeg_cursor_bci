@@ -53,3 +53,14 @@ def concat_datasets(input_dir):
         datasets.append(CustomDataset(os.path.join(input_dir,f)))
     datasets = torch.utils.data.ConcatDataset(datasets)
     return datasets
+
+class SequentialSampler(torch.utils.data.Sampler):
+    """Sample sequentially (only for validation and test)"""
+    def __init__(self, indices):
+        self.indices = indices
+
+    def __iter__(self):
+        return (index for index in self.indices)
+
+    def __len__(self):
+        return len(self.indices)

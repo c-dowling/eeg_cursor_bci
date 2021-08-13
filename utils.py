@@ -42,9 +42,9 @@ class EarlyStopping:
 
 
 
-def train(model, dataloaders, optimizer, criterion, device, num_epochs=10, callback=None):
+def train(model, dataloaders, optimizer, criterion, params, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
-    for epoch in range(num_epochs):
+    for epoch in range(params['epochs']):
         for phase in ['Train', 'Valid']:
             if phase == 'Train':
                 model.train()
@@ -57,16 +57,16 @@ def train(model, dataloaders, optimizer, criterion, device, num_epochs=10, callb
             bar = tqdm(enumerate(dataloaders[phase]), total=len(dataloaders[phase]), desc=f'Epoch {epoch:>2} ({phase})')
 
             for batch, (inputs, labels) in bar:
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+                inputs = inputs.to(params['device'])
+                labels = labels.to(params['device'])
 
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == 'Train'):
                     outputs = model(inputs)
-                    loss = criterion(outputs, labels)
+                    loss = criterion(outputs, labels-1)
 
                     if phase == 'Train':
-                        loss.mean().backward()
+                        loss.backward()
                         optimizer.step()
 
                 probabilities_task = F.softmax(outputs, dim=1)
@@ -86,27 +86,27 @@ def train(model, dataloaders, optimizer, criterion, device, num_epochs=10, callb
                 break
 
 
-def test(model, dataloaders, criterion, device):
+def test(model, dataloader, criterion, params):
     """Test the model using the testloader."""
     model.eval()
     test_loss = 0
     test_correct = 0
     test_inputs = 0
 
-    bar = tqdm(enumerate(dataloaders['Test']), total=len(dataloaders['Test']), desc='Test: ')
+    bar = tqdm(enumerate(dataloader['Test']), total=len(dataloader['Test']), desc='Test: ')
+    with torch.no_grad():
+        for batch, (inputs, labels) in bar:
+            inputs = inputs.to(params['device'])
+            labels = labels.to(params['device'])
 
-    for batch, (inputs, labels) in bar:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
 
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-
-        probabilities_task = F.softmax(outputs, dim=1)
-        _, predicted_task = torch.max(probabilities_task, 1)
-        test_loss += loss.sum().item()
-        test_correct += (predicted_task == labels).sum().item()
-        test_inputs += len(labels)
-        bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
-                            f'Acc Test: {test_correct / test_inputs:.4f}')
+            probabilities_task = F.softmax(outputs, dim=1)
+            _, predicted_task = torch.max(probabilities_task, 1)
+            test_loss += loss.sum().item()
+            test_correct += (predicted_task == labels).sum().item()
+            test_inputs += len(labels)
+            bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
+                                f'Acc Test: {test_correct / test_inputs:.4f}')
 

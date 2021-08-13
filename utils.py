@@ -1,15 +1,19 @@
+import copy
 import random
-import torch
+
 import numpy as np
-import random
+import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
+
 from preprocessing.dataloaders import concat_datasets, SequentialSampler
+
 
 # Create writer to track training and testing evolution
 writer = SummaryWriter()
+
 
 def set_seed(seed):
     """Sets rng using seed for reproducibility."""
@@ -20,6 +24,8 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+
+
 def init_data_loaders(params):
     dataset = concat_datasets(params["in_dir"])
 
@@ -37,11 +43,12 @@ def init_data_loaders(params):
     valid_sampler = SequentialSampler(valid_idx)
     test_sampler = SequentialSampler(test_idx)
 
-    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
+    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=train_sampler)
     validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
     testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
 
     return trainloader, validloader, testloader
+
 
 class EarlyStopping:
     def __init__(self, patience):
@@ -65,7 +72,6 @@ class EarlyStopping:
         return False
 
 
-
 def train(model, dataloaders, optimizer, criterion, params, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
     for epoch in range(params['epochs']):
@@ -87,7 +93,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == 'Train'):
                     outputs = model(inputs)
-                    loss = criterion(outputs, labels-1)
+                    loss = criterion(outputs, labels - 1)
 
                     if phase == 'Train':
                         loss.backward()
@@ -100,7 +106,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 epoch_inputs += len(labels)
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
- 
+
             writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
             writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)
 
@@ -133,4 +139,3 @@ def test(model, dataloader, criterion, params):
             test_inputs += len(labels)
             bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
                                 f'Acc Test: {test_correct / test_inputs:.4f}')
-

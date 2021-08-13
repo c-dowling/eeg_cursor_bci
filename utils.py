@@ -5,6 +5,8 @@ import random
 import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader
+from preprocessing.dataloaders import concat_datasets, SequentialSampler
 
 # Create writer to track training and testing evolution
 writer = SummaryWriter()
@@ -18,6 +20,28 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+def init_data_loaders(params):
+    dataset = concat_datasets(params["in_dir"])
+
+    total_size = len(dataset)
+    train_size = int(params["split_size"][0] * total_size)
+    valid_size = int(params["split_size"][1] * total_size)
+    test_size = total_size - train_size - valid_size
+
+    indices = list(range(total_size))
+    np.random.shuffle(indices)
+    train_idx = indices[valid_size + test_size:]
+    valid_idx = indices[:valid_size]
+    test_idx = indices[valid_size:valid_size + test_size]
+    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_idx)
+    valid_sampler = SequentialSampler(valid_idx)
+    test_sampler = SequentialSampler(test_idx)
+
+    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
+    validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
+    testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+
+    return trainloader, validloader, testloader
 
 class EarlyStopping:
     def __init__(self, patience):

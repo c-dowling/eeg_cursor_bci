@@ -1,7 +1,4 @@
-from preprocessing.dataloaders import concat_datasets, SequentialSampler
-import numpy as np
 import torch
-from torch.utils.data import DataLoader
 from utils import set_seed, EarlyStopping, train, test
 import torch.optim as optim
 from models.spacial import BCINet
@@ -18,25 +15,7 @@ def main():
     # Set seed for reproducibility
     set_seed(1234)
 
-    dataset = concat_datasets(params["in_dir"])
-
-    total_size = len(dataset)
-    train_size = int(params["split_size"][0] * total_size)
-    valid_size = int(params["split_size"][1] * total_size)
-    test_size = total_size - train_size - valid_size
-
-    indices = list(range(total_size))
-    np.random.shuffle(indices)
-    train_idx = indices[valid_size + test_size:]
-    valid_idx = indices[:valid_size]
-    test_idx = indices[valid_size:valid_size + test_size]
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_idx)
-    valid_sampler = SequentialSampler(valid_idx)
-    test_sampler = SequentialSampler(test_idx)
-
-    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
-    validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
-    testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+    trainloader, validloader, testloader = init_data_loaders(params)
 
     # Train and test model
     model = BCINet().to(params['device'])

@@ -34,9 +34,9 @@ def main():
     valid_sampler = SequentialSampler(valid_idx)
     test_sampler = SequentialSampler(test_idx)
 
-    trainloader = torch.utils.data.DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
-    validloader = torch.utils.data.DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
-    testloader = torch.utils.data.DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
+    validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
+    testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
 
     # Train and test model
     model = BCINet().to(params['device'])

@@ -1,5 +1,7 @@
-from preprocessing.dataloaders import concat_datasets, CustomDataset, CustomTemporalDataset
-from torch.utils.data import DataLoader
+import torch
+from utils import set_seed, EarlyStopping, train, test
+import torch.optim as optim
+from models.spacial import BCINet
 import json
 
 
@@ -7,18 +9,21 @@ def main():
     with open("params.json") as fp:
         params = json.load(fp)
 
-    dataset = concat_datasets(params["in_dir"])
+    # Check cuda availability
+    params['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    dataLoader = DataLoader(dataset,
-                            batch_size=params['batch_size'],
-                            num_workers=2,
-                            shuffle=True)
+    # Set seed for reproducibility
+    set_seed(1234)
 
-    for idx, (data,label) in enumerate(dataLoader):
-        print(data.shape,label.shape)
-        print("-------------------------")
+    trainloader, validloader, testloader = init_data_loaders(params)
 
-
+    # Train and test model
+    model = BCINet().to(params['device'])
+    early_stopping = EarlyStopping(patience=5)
+    optimizer = optim.Adam(model.parameters())
+    criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
+    test(model, testloader, criterion, params)
 
 if __name__ == "__main__":
     main()

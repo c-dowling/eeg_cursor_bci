@@ -35,8 +35,8 @@ def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o):
         data, labels = session2windows(in_dir, f, d, w, o, data, labels, temp_dim)
 
         hf = h5py.File(os.path.join(out_dir,file_name+"_"+os.path.splitext(f)[0]+'.h5'), 'w')
-        hf.create_dataset('data', data=data)
-        hf.create_dataset('labels', data=labels)
+        hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
+        hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
         hf.close()
 
 def usage():

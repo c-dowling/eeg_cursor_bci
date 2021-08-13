@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -23,6 +24,7 @@ class BCINet(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
 
 class TCNBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding, dilation, dropout):
@@ -56,7 +58,7 @@ class ShallowNet(nn.Module):
     def __init__(self, in_channels, out_features, kernel_size, dropout):
         super().__init__()
         tcn1 = TCNBlock(in_channels=in_channels, out_channels=40, kernel_size=kernel_size, stride=1,
-                        padding=kernel_size-1, dilation=1, dropout=dropout)
+                        padding=kernel_size - 1, dilation=1, dropout=dropout)
         spatial_filter_1 = nn.Conv2d(in_channels=40, out_channels=40, kernel_size=(62, 1))
         batch_norm = nn.BatchNorm2d(num_features=40)
         elu = nn.ELU()
@@ -68,4 +70,3 @@ class ShallowNet(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-

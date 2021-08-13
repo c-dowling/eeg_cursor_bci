@@ -12,8 +12,8 @@ class CustomDataset(Dataset):
             f = h5py.File(file_name, 'r')
         except FileNotFoundError:
             sys.exit("Unable to open {}".format(file_name))
-        self.data = f.load('data').value
-        self.labels = f.load('labels').value
+        self.data = f.get('data')[()]
+        self.labels = f.get('labels')[()] - 1
 
     def __len__(self):
         return self.data.shape[0]

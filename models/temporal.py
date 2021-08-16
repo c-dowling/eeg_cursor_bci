@@ -1,6 +1,7 @@
 from torch import nn
 import torch.nn.functional as F
 from torch import flatten
+from torch.nn.modules.dropout import Dropout
 
 class Block(nn.Module):
     #expansion = 1
@@ -8,7 +9,7 @@ class Block(nn.Module):
         super(Block, self).__init__()
 
         self.projected_shortcut = False
-
+        self.dropout = nn.Dropout2d()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding = padding, stride=stride, bias=False)
         self.batch_norm = nn.BatchNorm2d(out_channels)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, padding = padding, stride=stride, bias=False)
@@ -23,16 +24,14 @@ class Block(nn.Module):
 
     def forward(self, x):
         identity = x.clone()
-
+        x = self.dropout(x)
         x = F.relu(self.batch_norm(self.conv1(x)))
+        x = self.dropout(x)
         x = self.batch_norm(self.conv2(x))
 
-        if self.i_downsample is not None:
-            identity = self.i_downsample(identity)
         if(self.projected_shortcut):
             identity = self.projection(identity)
         x += identity
-        #x = F.relu(x)
         return x
 
 class ChannelFeatureExtractor(nn.Module):
@@ -72,17 +71,22 @@ class Classifier(nn.Module):
         if isTwoHead:
             ## TODO: Assert  C to be a list
             self.h1 = nn.Sequential(
+                nn.Dropout(),
                 nn.Linear(in_features, 200),
                 nn.ReLU(),
+                nn.Dropout(),
                 nn.Linear(200,C[0])
             )
             self.h2 = nn.Sequential(
+                nn.Dropout(),
                 nn.Linear(in_features, 200),
                 nn.ReLU(),
+                nn.Dropout(),
                 nn.Linear(200,C[1])
             )
         else:
             ## TODO: Assert  C to be a positive integer
+            self.dropout = Dropout()
             self.fc1 = nn.Linear(in_features, 200)
             self.fc2 = nn.Linear(200, C)
 
@@ -92,7 +96,9 @@ class Classifier(nn.Module):
             o2 = self.h2(x)
             return o1, o2
         else:
+            x = self.dropout(x)
             x = F.relu(self.fc1(x))
+            x = self.dropout(x)
             x = self.fc2(x)
             return x
 

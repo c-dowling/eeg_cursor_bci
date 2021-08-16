@@ -105,7 +105,7 @@ class TemporalModel_LSTM(nn.Module):
         self.avg_pool = nn.AvgPool2d((1,2), stride=(1,2))
         self.spatialFeatureExtractor = SpatialFeatureExtractor()
         self.temporalFeatureExtractor = nn.LSTM(channels*window//4, hidden_size, num_layers, bidirectional=True, batch_first = True)
-        self.classifier = Classifier(hidden_size*2*2, self.C, isTwoHead=twoHead)
+        self.classifier = Classifier(hidden_size*num_layers*2, self.C, isTwoHead=twoHead)
 
     def forward(self, x):
         x = self.channelFeatureExtractor(x)

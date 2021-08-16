@@ -1,7 +1,7 @@
 {
     "in_dir": "/content/drive/MyDrive/bin_data",
     "split_size": [0.8, 0.1, 0.1],
-    "batch_size": 512,
+    "batch_size": 128,
     "lr" : 1e-3,
     "epochs": 100
 

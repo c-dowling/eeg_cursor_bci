@@ -7,6 +7,7 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from preprocessing.dataloaders import concat_datasets, SequentialSampler
+import copy
 
 # Create writer to track training and testing evolution
 writer = SummaryWriter()

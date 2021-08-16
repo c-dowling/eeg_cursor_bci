@@ -81,7 +81,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
             epoch_inputs = 0
             #bar = tqdm(enumerate(dataloaders[phase]), total=len(dataloaders[phase]), desc=f'Epoch {epoch:>2} ({phase})')
 
-            for batch, (inputs, labels) in dataloaders[phase]:
+            for batch, (inputs, labels) in enumerate(dataloaders[phase]):
                 inputs = inputs.to(params['device'])
                 labels = labels.to(params['device'])
 

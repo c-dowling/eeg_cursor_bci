@@ -39,10 +39,10 @@ class ChannelFeatureExtractor(nn.Module):
     def __init__(self):
         super(ChannelFeatureExtractor, self).__init__()
         self.conv1 = nn.Conv2d(1, 8, kernel_size=(1,7), padding=(0,3))
-        self.block1 = Block(8, 16, (1,5), padding=(0,2))
+        self.block1 = Block(8, 8, (1,5), padding=(0,2))
         #self.block2 = Block(16, 16, (1,3), padding=(0,1))
         self.bn1 = nn.BatchNorm2d(8)
-        self.bn2 = nn.BatchNorm2d(16)
+        self.bn2 = nn.BatchNorm2d(8)
         self.bn3 = nn.BatchNorm2d(16)
 
     def forward(self, x):
@@ -55,9 +55,9 @@ class ChannelFeatureExtractor(nn.Module):
 class SpatialFeatureExtractor(nn.Module):
     def __init__(self):
         super(SpatialFeatureExtractor, self).__init__()
-        self.block1 = Block(16, 32, 5, padding=2)
+        self.block1 = Block(8, 8, 5, padding=2)
         #self.block2 = Block(32, 32, 3, padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.bn1 = nn.BatchNorm2d(8)
         self.bn2 = nn.BatchNorm2d(32)
 
     def forward(self, x):
@@ -72,19 +72,19 @@ class Classifier(nn.Module):
         if isTwoHead:
             ## TODO: Assert  C to be a list
             self.h1 = nn.Sequential(
-                nn.Linear(in_features, 500),
+                nn.Linear(in_features, 200),
                 nn.ReLU(),
-                nn.Linear(500,C[0])
+                nn.Linear(200,C[0])
             )
             self.h2 = nn.Sequential(
-                nn.Linear(in_features, 500),
+                nn.Linear(in_features, 200),
                 nn.ReLU(),
-                nn.Linear(500,C[1])
+                nn.Linear(200,C[1])
             )
         else:
             ## TODO: Assert  C to be a positive integer
-            self.fc1 = nn.Linear(in_features, 500)
-            self.fc2 = nn.Linear(500, C)
+            self.fc1 = nn.Linear(in_features, 200)
+            self.fc2 = nn.Linear(200, C)
 
     def forward(self,x):
         if self.isTwoHead:

@@ -87,8 +87,8 @@ class Classifier(nn.Module):
         else:
             ## TODO: Assert  C to be a positive integer
             self.dropout = Dropout()
-            self.fc1 = nn.Linear(in_features, 200)
-            self.fc2 = nn.Linear(200, C)
+            #self.fc1 = nn.Linear(in_features, 200)
+            self.fc2 = nn.Linear(in_features, C)
 
     def forward(self,x):
         if self.isTwoHead:
@@ -96,8 +96,8 @@ class Classifier(nn.Module):
             o2 = self.h2(x)
             return o1, o2
         else:
-            x = self.dropout(x)
-            x = F.relu(self.fc1(x))
+            #x = self.dropout(x)
+            #x = F.relu(self.fc1(x))
             x = self.dropout(x)
             x = self.fc2(x)
             return x

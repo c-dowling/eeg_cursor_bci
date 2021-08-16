@@ -22,7 +22,7 @@ def main():
     model = TemporalModel_LSTM(
         channels = 62,
         window = 500,
-        hidden_size = 500,
+        hidden_size = 200,
         C = 4,
         num_layers = 1).to(params['device'])
     early_stopping = EarlyStopping(patience=10)

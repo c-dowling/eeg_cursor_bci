@@ -98,15 +98,16 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 _, predicted_task = torch.max(probabilities_task, 1)
                 epoch_loss += loss.sum().item()
                 epoch_correct += (predicted_task == labels).sum().item()
-                epoch_inputs += len(labels)
                 '''
+                epoch_inputs += len(labels)
+                
                 if batch % 5 == 0:
                     print('epoch [{}/{}], \tLoss:{:.4f}'.format(epoch+1, params['epochs'], loss.item()))
                 #bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                 #                    f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
  
-            writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
-            writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)
+            #writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
+            #writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)
 
         if callback:
             validation_loss = epoch_loss / epoch_inputs

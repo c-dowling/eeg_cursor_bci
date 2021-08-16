@@ -40,7 +40,7 @@ class ChannelFeatureExtractor(nn.Module):
         super(ChannelFeatureExtractor, self).__init__()
         self.conv1 = nn.Conv2d(1, 8, kernel_size=(1,7), padding=(0,3))
         self.block1 = Block(8, 16, (1,5), padding=(0,2))
-        self.block2 = Block(16, 16, (1,3), padding=(0,1))
+        #self.block2 = Block(16, 16, (1,3), padding=(0,1))
         self.bn1 = nn.BatchNorm2d(8)
         self.bn2 = nn.BatchNorm2d(16)
         self.bn3 = nn.BatchNorm2d(16)
@@ -48,7 +48,7 @@ class ChannelFeatureExtractor(nn.Module):
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.block1(x)))
-        x = F.relu(self.bn3(self.block2(x)))
+        #x = F.relu(self.bn3(self.block2(x)))
         return x
 
 
@@ -56,13 +56,13 @@ class SpatialFeatureExtractor(nn.Module):
     def __init__(self):
         super(SpatialFeatureExtractor, self).__init__()
         self.block1 = Block(16, 32, 5, padding=2)
-        self.block2 = Block(32, 32, 3, padding=1)
+        #self.block2 = Block(32, 32, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
         self.bn2 = nn.BatchNorm2d(32)
 
     def forward(self, x):
         x = F.relu(self.bn1(self.block1(x)))
-        x = F.relu(self.bn2(self.block2(x)))
+        #x = F.relu(self.bn2(self.block2(x)))
         return x
 
 class Classifier(nn.Module):

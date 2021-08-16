@@ -2,6 +2,7 @@ import torch
 from utils import set_seed, EarlyStopping, train, test, init_data_loaders
 import torch.optim as optim
 from models.spacial import BCINet
+from models.temporal import TemporalModel_LSTM
 import json
 
 
@@ -18,7 +19,12 @@ def main():
     trainloader, validloader, testloader = init_data_loaders(params)
 
     # Train and test model
-    model = BCINet().to(params['device'])
+    model = TemporalModel_LSTM(
+        channels = 62,
+        window = 500,
+        hidden_size = 1000,
+        C = 4,
+        num_layers = 2).to(params['device'])
     early_stopping = EarlyStopping(patience=5)
     optimizer = optim.Adam(model.parameters())
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')

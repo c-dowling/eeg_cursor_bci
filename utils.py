@@ -80,14 +80,14 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
             epoch_inputs = 0
             bar = tqdm(enumerate(dataloaders[phase]), total=len(dataloaders[phase]), desc=f'Epoch {epoch:>2} ({phase})')
 
-            for batch, (inputs, labels) in bar:
+            for _, (inputs, labels) in bar:
                 inputs = inputs.to(params['device'])
                 labels = labels.to(params['device'])
 
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == 'Train'):
                     outputs = model(inputs)
-                    loss = criterion(outputs, labels-1)
+                    loss = criterion(outputs, labels)
 
                     if phase == 'Train':
                         loss.backward()

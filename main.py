@@ -26,7 +26,7 @@ def main():
         C = 4,
         num_layers = 2).to(params['device'])
     early_stopping = EarlyStopping(patience=5)
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
     train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
     test(model, testloader, criterion, params)

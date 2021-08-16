@@ -22,13 +22,13 @@ def main():
     model = TemporalModel_LSTM(
         channels = 62,
         window = 500,
-        hidden_size = 50,
+        hidden_size = 10,
         C = 4,
         num_layers = 1).to(params['device'])
-    early_stopping = EarlyStopping(patience=10)
+    early_stopping = EarlyStopping(patience=25)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
-    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params)
+    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
     test(model, testloader, criterion, params)
 
 if __name__ == "__main__":

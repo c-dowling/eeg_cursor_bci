@@ -28,7 +28,7 @@ def main():
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
-    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
+    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params)
     test(model, testloader, criterion, params)
 
 if __name__ == "__main__":

@@ -79,9 +79,9 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
             epoch_loss = 0
             epoch_correct = 0
             epoch_inputs = 0
-            bar = tqdm(enumerate(dataloaders[phase]), total=len(dataloaders[phase]), desc=f'Epoch {epoch:>2} ({phase})')
+            #bar = tqdm(enumerate(dataloaders[phase]), total=len(dataloaders[phase]), desc=f'Epoch {epoch:>2} ({phase})')
 
-            for _, (inputs, labels) in bar:
+            for batch, (inputs, labels) in bar:
                 inputs = inputs.to(params['device'])
                 labels = labels.to(params['device'])
 
@@ -93,14 +93,17 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                     if phase == 'Train':
                         loss.backward()
                         optimizer.step()
-
+                '''
                 probabilities_task = F.softmax(outputs, dim=1)
                 _, predicted_task = torch.max(probabilities_task, 1)
                 epoch_loss += loss.sum().item()
                 epoch_correct += (predicted_task == labels).sum().item()
                 epoch_inputs += len(labels)
-                bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
-                                    f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
+                '''
+                if batch % 5 == 0:
+                    print('epoch [{}/{}], \tLoss:{:.4f}'.format(epoch+1, params['epochs'], loss.item()))
+                #bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
+                #                    f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
  
             writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
             writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)

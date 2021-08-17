@@ -4,7 +4,6 @@ from torch import flatten
 from torch.nn.modules.dropout import Dropout
 
 class Block(nn.Module):
-    #expansion = 1
     def __init__(self, in_channels, out_channels, kernel_size, i_downsample=None, padding=0, stride=1):
         super(Block, self).__init__()
 
@@ -37,17 +36,11 @@ class Block(nn.Module):
 class ChannelFeatureExtractor(nn.Module):
     def __init__(self):
         super(ChannelFeatureExtractor, self).__init__()
-        #self.conv1 = nn.Conv2d(1, 8, kernel_size=(1,7), padding=(0,3))
         self.block1 = Block(1, 4, (1,3), padding=(0,1))
-        #self.block2 = Block(16, 16, (1,3), padding=(0,1))
-        self.bn1 = nn.BatchNorm2d(8)
-        self.bn2 = nn.BatchNorm2d(4)
-        self.bn3 = nn.BatchNorm2d(16)
+        self.bn1 = nn.BatchNorm2d(4)
 
     def forward(self, x):
-        #x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.block1(x)))
-        #x = F.relu(self.bn3(self.block2(x)))
+        x = F.relu(self.bn1(self.block1(x)))
         return x
 
 
@@ -55,13 +48,10 @@ class SpatialFeatureExtractor(nn.Module):
     def __init__(self):
         super(SpatialFeatureExtractor, self).__init__()
         self.block1 = Block(1, 4, 3, padding=1)
-        #self.block2 = Block(32, 32, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(4)
-        self.bn2 = nn.BatchNorm2d(32)
 
     def forward(self, x):
         x = F.relu(self.bn1(self.block1(x)))
-        #x = F.relu(self.bn2(self.block2(x)))
         return x
 
 class Classifier(nn.Module):
@@ -87,7 +77,6 @@ class Classifier(nn.Module):
         else:
             ## TODO: Assert  C to be a positive integer
             self.dropout = Dropout()
-            #self.fc1 = nn.Linear(in_features, 200)
             self.fc2 = nn.Linear(in_features, C)
 
     def forward(self,x):
@@ -96,8 +85,6 @@ class Classifier(nn.Module):
             o2 = self.h2(x)
             return o1, o2
         else:
-            #x = self.dropout(x)
-            #x = F.relu(self.fc1(x))
             x = self.dropout(x)
             x = self.fc2(x)
             return x

@@ -23,7 +23,7 @@ def main():
     model = BCINet(in_channels=1, out_features=4, kernel_size=3, dropout=0.1).to(params['device'])
     early_stopping = EarlyStopping(patience=5)
     optimizer = optim.Adam(model.parameters())
-    criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    criterion = torch.nn.CrossEntropyLoss(reduction='none')
     train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
     test(model, testloader, criterion, params)
 

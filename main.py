@@ -5,8 +5,9 @@ import torch.optim as optim
 from models.spacial import BCINet
 from models.temporal import TemporalModel_LSTM
 import json
-fo
+from preprocessing.dataloaders import concat_datasets
 from utils import count_parameters
+from torch.utils.data import DataLoader
 
 
 
@@ -21,6 +22,7 @@ def main():
     set_seed(1234)
 
     trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
+    
 
     # Train and test model
     model = TemporalModel_LSTM(
@@ -33,8 +35,16 @@ def main():
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    
     train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
+    del trainloader, validloader
+
     test(model, testloader, criterion, params)
+    del testloader
+
+    dataset = concat_datasets(params["sess2_dir"], True)
+    testloader_session2 = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2)
+    test(model, testloader_session2, criterion, params)
 
 
 if __name__ == "__main__":

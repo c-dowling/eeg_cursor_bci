@@ -151,17 +151,14 @@ class Session:
                 sys.exit("Bins of {} samples cannot be divided into windows of {} samples with {} overlapping samples".format(bin,window,overlap))
             n_timesteps = (trial_cut.shape[1]-overlap)//(window-overlap)
             timestepsInBin = (bin-overlap) // (window-overlap)
-            print(n_timesteps-timestepsInBin+1)
-            print(timestepsInBin)
             for i in range (0,n_timesteps-timestepsInBin+1):
                 windows = []
                 for t in range(0, timestepsInBin):
                     windows.append(trial_cut[:, (i + t) * (window - overlap):(i + t) * (window - overlap) + window])
                 data.append(windows)
-                print(len(windows))
                 labels.append(self.get_target_num(num_trial))
 
-            print(len(data))
+        
             
         return data, labels
             #raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter

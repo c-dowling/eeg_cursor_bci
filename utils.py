@@ -1,6 +1,7 @@
 import copy
 import random
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -74,6 +75,24 @@ class EarlyStopping:
         return False
 
 
+def plot_confusion(matrix, labels):
+    num_labels = len(labels)
+    norm_matrix = np.around(matrix / matrix.sum(axis=1)[:, np.newaxis], 2)
+
+    im = plt.imshow(norm_matrix, cmap='Reds', vmin=0, vmax=1)
+    ticks = range(num_labels)
+    plt.xlabel('Predicted', fontsize=12)
+    plt.ylabel('True Labels', fontsize=12)
+    plt.xticks(ticks, labels)
+    plt.yticks(ticks, labels)
+    plt.title('Confusion Matrix', fontsize=20)
+    for row in range(num_labels):
+        for col in range(num_labels):
+            color = 'white' if norm_matrix[row, col] > 0.5 else 'black'
+            plt.text(col, row, norm_matrix[row, col], horizontalalignment='center', fontsize=12, color=color)
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+
+
 def train(model, dataloaders, optimizer, criterion, params, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
     for epoch in range(params['epochs']):
@@ -125,6 +144,8 @@ def test(model, dataloader, criterion, params):
     test_correct = 0
     test_inputs = 0
 
+    confusion_matrix = np.zeros((4, 4))  # Rows: Target, Columns: Predicted
+
     bar = tqdm(enumerate(dataloader), total=len(dataloader), desc='Test: ')
     with torch.no_grad():
         for _, (inputs, labels) in bar:
@@ -141,3 +162,12 @@ def test(model, dataloader, criterion, params):
             test_inputs += len(labels)
             bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
                                 f'Acc Test: {test_correct / test_inputs:.4f}')
+
+            for i_label, label in enumerate(labels):
+                confusion_matrix[label, predicted_task[i_label]] += 1
+
+    fig = plt.figure(figsize=(7, 7))
+    plot_confusion(confusion_matrix, ['Right', 'Left', 'Up', 'Down'])
+
+    writer.add_figure('Confusion Matrix', fig, 0)
+    writer.close()

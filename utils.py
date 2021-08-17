@@ -21,6 +21,7 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+    
 def init_data_loaders(params):
     dataset = concat_datasets(params["in_dir"])
 

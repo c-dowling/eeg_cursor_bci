@@ -54,7 +54,7 @@ class ChannelFeatureExtractor(nn.Module):
 class SpatialFeatureExtractor(nn.Module):
     def __init__(self):
         super(SpatialFeatureExtractor, self).__init__()
-        self.block1 = Block(4, 4, 3, padding=1)
+        self.block1 = Block(1, 4, 3, padding=1)
         #self.block2 = Block(32, 32, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(4)
         self.bn2 = nn.BatchNorm2d(32)
@@ -110,12 +110,12 @@ class TemporalModel_LSTM(nn.Module):
         self.channelFeatureExtractor = ChannelFeatureExtractor()
         self.avg_pool = nn.AvgPool2d((1,2), stride=(1,2))
         self.spatialFeatureExtractor = SpatialFeatureExtractor()
-        self.temporalFeatureExtractor = nn.LSTM(channels*window//4, hidden_size, num_layers, bidirectional=True, batch_first = True, dropout=0.5)
+        self.temporalFeatureExtractor = nn.LSTM(channels*window//2, hidden_size, num_layers, bidirectional=True, batch_first = True, dropout=0.5)
         self.classifier = Classifier(hidden_size*num_layers*2, self.C, isTwoHead=twoHead)
 
     def forward(self, x):
-        x = self.channelFeatureExtractor(x)
-        x = self.avg_pool(x)
+        #x = self.channelFeatureExtractor(x)
+        #x = self.avg_pool(x)
         x = self.spatialFeatureExtractor(x)
         x = self.avg_pool(x)
         x = flatten(x,2)

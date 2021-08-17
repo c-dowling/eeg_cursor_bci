@@ -1,8 +1,8 @@
 {
-    "in_dir": "/content/drive/MyDrive/bin_data/temporal",
+    "in_dir": "../temporal_bin_data/",
     "split_size": [0.8, 0.1, 0.1],
     "batch_size": 256,
     "lr" : 1e-4,
-    "epochs": 300
+    "epochs": 200
 
 }

@@ -4,6 +4,7 @@ import torch.optim as optim
 from models.spacial import BCINet
 from models.temporal import TemporalModel_LSTM
 import json
+from utils import count_parameters
 
 
 def main():
@@ -25,6 +26,7 @@ def main():
         hidden_size = 20,
         C = 4,
         num_layers = 1).to(params['device'])
+    print("Model Number Parameters = {}".format(count_parameters(model)))
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')

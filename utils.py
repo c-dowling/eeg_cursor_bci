@@ -22,6 +22,10 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+
 def init_data_loaders(params, isTemporal=False):
     dataset = concat_datasets(params["in_dir"], isTemporal)
 

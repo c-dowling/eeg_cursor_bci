@@ -1,10 +1,11 @@
 import json
-
 import torch
 import torch.optim as optim
-
 from models.spacial import BCINet
-from utils import set_seed, EarlyStopping, train, test, init_data_loaders
+from models.temporal import TemporalModel_LSTM
+import json
+from utils import count_parameters
+
 
 
 def main():
@@ -17,12 +18,18 @@ def main():
     # Set seed for reproducibility
     set_seed(1234)
 
-    trainloader, validloader, testloader = init_data_loaders(params)
+    trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
 
     # Train and test model
-    model = BCINet(in_channels=1, out_features=4, kernel_size=3, dropout=0.1).to(params['device'])
-    early_stopping = EarlyStopping(patience=5)
-    optimizer = optim.Adam(model.parameters())
+    model = TemporalModel_LSTM(
+        channels = 62,
+        window = 40,
+        hidden_size = 20,
+        C = 4,
+        num_layers = 1).to(params['device'])
+    print("Model Number Parameters = {}".format(count_parameters(model)))
+    early_stopping = EarlyStopping(patience=10)
+    optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
     train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
     test(model, testloader, criterion, params)

@@ -18,8 +18,8 @@ def session2windows(in_dir, file, d, w, o, data, labels, temp_dim=False):
     W = int(w * sess.SRATE)
     O = int(W * o)
     n_trials = sess.get_num_trials()
+    for t in range(0,n_trials):
 
-    for t in range(0, n_trials):
         trial_data = sess.cut_eeg(t, sess.SRATE)
         file = os.path.splitext(file)[0]
         data, labels = sess.bin_trial(trial_data, t, data, labels, W, O, D, temp_dim)

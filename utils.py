@@ -21,9 +21,9 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-    
-def init_data_loaders(params):
-    dataset = concat_datasets(params["in_dir"])
+
+def init_data_loaders(params, isTemporal=False):
+    dataset = concat_datasets(params["in_dir"], isTemporal)
 
     total_size = len(dataset)
     train_size = int(params["split_size"][0] * total_size)

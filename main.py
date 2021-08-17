@@ -16,12 +16,12 @@ def main():
     # Set seed for reproducibility
     set_seed(1234)
 
-    trainloader, validloader, testloader = init_data_loaders(params)
+    trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
 
     # Train and test model
     model = TemporalModel_LSTM(
         channels = 62,
-        window = 500,
+        window = 40,
         hidden_size = 20,
         C = 4,
         num_layers = 1).to(params['device'])

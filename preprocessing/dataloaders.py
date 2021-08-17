@@ -1,7 +1,10 @@
-from torch.utils.data import Dataset
-import h5pickle as h5py
-import sys, os
+import sys
+import os
+
 import torch
+import h5pickle as h5py
+from torch.utils.data import Dataset
+
 
 class CustomDataset(Dataset):
     def __init__(self, file_name):
@@ -12,6 +15,7 @@ class CustomDataset(Dataset):
         self.data = f.get('data')[()]
         self.labels = f.get('labels')[()]-1
 
+
     def __len__(self):
         return self.data.shape[0]
 
@@ -19,10 +23,11 @@ class CustomDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        data = torch.FloatTensor(self.data[idx,:,:]).unsqueeze(0)
+        data = torch.FloatTensor(self.data[idx, :, :]).unsqueeze(0)
         label = torch.LongTensor(self.labels[idx]).squeeze()
 
         return data, label
+
 
 class CustomTemporalDataset(Dataset):
     def __init__(self, file_name):
@@ -40,7 +45,7 @@ class CustomTemporalDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
+            
         data = torch.FloatTensor(self.data[idx,:,:,:]).unsqueeze(1)
         label = torch.LongTensor(self.labels[idx]).squeeze()
 
@@ -56,8 +61,10 @@ def concat_datasets(input_dir, isTemporal = False):
                 datasets.append(CustomTemporalDataset(os.path.join(input_dir,f)))
             else:
                 datasets.append(CustomDataset(os.path.join(input_dir,f)))
+
     datasets = torch.utils.data.ConcatDataset(datasets)
     return datasets
+
 
 class SequentialSampler(torch.utils.data.Sampler):
     """Sample sequentially (only for validation and test)"""

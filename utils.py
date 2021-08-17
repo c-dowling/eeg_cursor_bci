@@ -1,16 +1,20 @@
+import copy
 import random
-import torch
+
 import numpy as np
-import random
+import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
+
 from preprocessing.dataloaders import concat_datasets, SequentialSampler
 import copy
 
+
 # Create writer to track training and testing evolution
 writer = SummaryWriter()
+
 
 def set_seed(seed):
     """Sets rng using seed for reproducibility."""
@@ -22,12 +26,14 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
+
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
     
 
 def init_data_loaders(params, isTemporal=False):
     dataset = concat_datasets(params["in_dir"], isTemporal)
+
 
     total_size = len(dataset)
     train_size = int(params["split_size"][0] * total_size)
@@ -43,33 +49,35 @@ def init_data_loaders(params, isTemporal=False):
     valid_sampler = SequentialSampler(valid_idx)
     test_sampler = SequentialSampler(test_idx)
 
-    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers = 2, sampler=train_sampler)
+    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=train_sampler)
     validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
     testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
 
     return trainloader, validloader, testloader
+
 
 class EarlyStopping:
     def __init__(self, patience):
         self.patience = patience
         self.current_patience = patience
         self.best_model = None
+        self.best_epoch = None
         self.best_loss = float('inf')
 
     def __call__(self, model, validation_loss, epoch):
         if validation_loss < self.best_loss:
             self.best_loss = validation_loss
+            self.best_epoch = epoch
             self.best_model = copy.deepcopy(model)
             self.current_patience = self.patience
         else:
             self.current_patience -= 1
 
         if self.current_patience == 0:
-            print(f'Training halted. Retrieving weights from epoch {epoch}. Best validation loss {self.best_loss:.4f}')
+            print(f'Training halted. Retrieving weights from epoch {self.best_epoch}. Best validation loss {self.best_loss:.4f}')
             model.load_state_dict(self.best_model.state_dict())
             return True
         return False
-
 
 
 def train(model, dataloaders, optimizer, criterion, params, callback=None):
@@ -108,7 +116,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
- 
+
             writer.add_scalar(f'Loss/{phase}', epoch_loss / epoch_inputs, epoch)
             writer.add_scalar(f'Accuracy/{phase}', epoch_correct / epoch_inputs, epoch)
 
@@ -141,4 +149,3 @@ def test(model, dataloader, criterion, params):
             test_inputs += len(labels)
             bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
                                 f'Acc Test: {test_correct / test_inputs:.4f}')
-

@@ -1,10 +1,11 @@
+import json
 import torch
-from utils import set_seed, EarlyStopping, train, test, init_data_loaders
 import torch.optim as optim
 from models.spacial import BCINet
 from models.temporal import TemporalModel_LSTM
 import json
 from utils import count_parameters
+
 
 
 def main():
@@ -33,6 +34,6 @@ def main():
     train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
     test(model, testloader, criterion, params)
 
+
 if __name__ == "__main__":
     main()
-    

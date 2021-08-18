@@ -31,7 +31,9 @@ def main():
         hidden_size = 20,
         C = 4,
         num_layers = 1).to(params['device'])
+
     print("Model Number Parameters = {}".format(count_parameters(model)))
+    
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
@@ -41,10 +43,11 @@ def main():
 
     test(model, testloader, criterion, params)
     del testloader
-
+    '''
     dataset = concat_datasets(params["sess2_dir"], True)
     testloader_session2 = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2)
     test(model, testloader_session2, criterion, params)
+    '''
 
 
 if __name__ == "__main__":

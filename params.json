@@ -1,5 +1,5 @@
 {
-    "in_dir": "/content/drive/MyDrive/bin_data/temporal/sess1",
+    "in_dir": "/content/drive/MyDrive/bin_data/temporal/sess1_20ovl",
     "sess2_dir": "/content/drive/MyDrive/bin_data/temporal/sess2",
     "split_size": [0.8, 0.1, 0.1],
     "batch_size": 256,

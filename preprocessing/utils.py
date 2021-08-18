@@ -1,6 +1,6 @@
 import os
 import sys
-
+import numpy as np
 from scipy.io import loadmat
 
 
@@ -123,7 +123,7 @@ class Session:
 
         return trial_cut
 
-    def bin_trial(self, trial_cut, num_trial, data, labels, window, overlap, bin=500, temp_dim=0, save=True):
+    def bin_trial(self, trial_cut, num_trial, data, labels, count, window, overlap, bin=500, temp_dim=0, save=True):
         """
         Splits a trial into multiple windows of EEG data.
 
@@ -142,53 +142,42 @@ class Session:
         """
         if(temp_dim == 0):
             n_bins = (trial_cut.shape[1] - overlap) // (window - overlap)         # Calculate the number of bins we can get from this trial
-            # n_bins = (trial_cut.shape[1]-(binlength-delay))//delay         # Calculate the number of bins we can get from this trial
             for i in range(0, n_bins):
-                data.append(trial_cut[:, i * (window - overlap): i * (window - overlap) + window])
-                labels.append(self.get_target_num(num_trial))
+                data[count,:,:]= trial_cut[:, i * (window - overlap): i * (window - overlap) + window]
+                labels[count] = self.trialData[num_trial][3]
+                count += 1
         else:
             if(bin%(window-overlap)!=0):
                 sys.exit("Bins of {} samples cannot be divided into windows of {} samples with {} overlapping samples".format(bin,window,overlap))
             n_timesteps = (trial_cut.shape[1]-overlap)//(window-overlap)
             timestepsInBin = (bin-overlap) // (window-overlap)
             for i in range (0,n_timesteps-timestepsInBin+1):
-                windows = []
+                windows = np.zeros(data.shape[1:], dtype=np.float16)
                 for t in range(0, timestepsInBin):
-                    windows.append(trial_cut[:, (i + t) * (window - overlap):(i + t) * (window - overlap) + window])
-                data.append(windows)
-                labels.append(self.get_target_num(num_trial))
+                    windows[t,:,:] = trial_cut[:, (i + t) * (window - overlap):(i + t) * (window - overlap) + window].astype('float16')
+                data[count,:,:,:] = windows
+                labels[count] = self.trialData[num_trial][3]
+                count += 1
 
-        
-            
-        return data, labels
-            #raise NotImplementedError("Function not available yet :(")    # Add our delay value to the counter
+        return data, labels, count
 
 
-        return data, labels
-
-    def get_inputs_labels(self, start_t=None, end_t=None, binlength=500, delay=40, overlap=0, temp_dim=0):
+    def get_bin_session(self, data_shape, window, overlap, bin=500, temp_dim=0):
         """
         Returns two arrays containing the input data for the model and corresponding labels.
         Params:
-            - pre (int): If True will set number of ms before target presentation to include in cut (includes bound)
-            - post (int): If True will set number of ms after target presentation to include in cut (includes bound)
-            - start_t (int): number of ms before target presentation to include in cut (includes bound)
-            - end_t (int): number of ms after target presentation to include in cut (includes bound)
-            - binlength (int) - Length of each window (samples)
-            - delay (int) - Delay between bins (samples)
-            - overlap (int) - _____________________
-            - temp_dim (int) - _____________________
+            - window (int) - Length of each window (samples)
+            - overlap (int) - Samples that overlap between windows (samples)
+            - bin (int) - Length of each window (samples)
+            - temp_dim (int) - Whether to use temporal windowing or not
         Returns:
             - inputs (array): A 3D array of EEG data for each window (window x channels x time)
             - labels (array): A 1D array of intended cursor direction for each bin
         """
-        inputs = []
-        labels = []
-        for trial in range(0, len(self.data[0]) - 1):
-            if trial % 50 == 0:
-                print(f"Extracting Trial Data: {trial}/{len(self.data[0])}")
+        data = np.zeros(data_shape, dtype=np.float16)
+        labels = np.zeros(data_shape[0], dtype=np.float16)
+        count = 0
+        for t in range(0,len(self.data[0])):
+            data, labels, count= self.bin_trial(self.cut_eeg(t, self.SRATE), t, data, labels, count, window, overlap, bin, temp_dim)
 
-            trial_cut = self.cut_eeg(trial, start_t, end_t)
-            inputs, labels = self.bin_trial(trial_cut, trial, inputs, labels, binlength, delay, overlap, temp_dim, save=False)
-
-        return inputs, labels
+        return data, labels

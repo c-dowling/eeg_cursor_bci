@@ -1,4 +1,5 @@
 import os
+from random import sample
 import sys
 try:
     from posix import listdir
@@ -7,40 +8,65 @@ except ModuleNotFoundError:
 
 from utils import Session
 import h5py
+import numpy as np
 
 
-def session2windows(in_dir, file, d, w, o, data, labels, temp_dim=False):
+def session2windows(in_dir, file, d, w, o, data_shape, temp_dim=False):
     try:
         sess = Session(file, in_dir)
     except:
         sys.exit("ERROR: Corrupted file")
+    
     D = int(d * sess.SRATE)
     W = int(w * sess.SRATE)
     O = int(W * o)
-    n_trials = sess.get_num_trials()
-    for t in range(0,n_trials):
 
-        trial_data = sess.cut_eeg(t, sess.SRATE)
-        file = os.path.splitext(file)[0]
-        data, labels = sess.bin_trial(trial_data, t, data, labels, W, O, D, temp_dim)
-    print(len(data))
+    data, labels = sess.get_bin_session(data_shape, W, O, D, temp_dim)
 
     return data, labels
 
 
-def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o):
+def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o, channels):
     files = os.listdir(in_dir)
     files.sort()
-
+    
+    samples = []
     for f in files:
-        print("Processing " + f)
-        data = []
-        labels = []
-        data, labels = session2windows(in_dir, f, d, w, o, data, labels, temp_dim)
+        sess = Session(f, in_dir)
+        D = int(d * sess.SRATE)
+        W = int(w * sess.SRATE)
+        O = int(W * o)
+        n_trials = sess.get_num_trials()
+        data_shapes = []
+        for t in range(0,n_trials):
+            trial_data = sess.cut_eeg(t, sess.SRATE)
+            if(temp_dim):
+                timestepsInBin = (D-O) // (W-O)
+                n = ((trial_data.shape[1]-O)//(W-O))- timestepsInBin+1
+            else:
+                n = (trial_data.shape[1]-O) // (W - O)
+            samples.append(n)
 
+        samples = np.array(samples)
+        samples[np.where(samples < 0)[0]] = 0
+
+        if(temp_dim):
+            data_shapes.append((sum(samples),timestepsInBin,channels,W))
+        else:
+            data_shapes.append((sum(samples),channels,W))
+        
+    
+    for idx,f in enumerate(files):
+        print("Processing " + f)
+        
+        data, labels = session2windows(in_dir, f, d, w, o, data_shapes[idx], temp_dim)
+        print(np.arange(0,450,25))
         hf = h5py.File(os.path.join(out_dir, file_name + "_" + os.path.splitext(f)[0] + '.h5'), 'w')
-        hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
-        hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
+        
+        #hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
+        #hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
+        
+        
         hf.close()
 
 
@@ -85,4 +111,6 @@ if __name__ == "__main__":
     if(not os.path.exists(sys.argv[2])):
         os.mkdir(sys.argv[2])
 
-    dataset2windows(sys.argv[1], sys.argv[2], sys.argv[3], temp_dim, d, w, o)
+    n_channels = 62
+
+    dataset2windows(sys.argv[1], sys.argv[2], sys.argv[3], temp_dim, d, w, o, n_channels)

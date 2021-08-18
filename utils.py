@@ -61,10 +61,7 @@ def init_data_loaders(params):
 
         # Create a test dataloader
         else:
-            test_idx = len(datasets[state])
-            test_sampler = SequentialSampler(test_idx)
-
-            data_loaders['test_' + state] = DataLoader(datasets[state], batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+            data_loaders['test_' + state] = DataLoader(datasets[state], batch_size=params["batch_size"], num_workers=2)
 
     return data_loaders
 

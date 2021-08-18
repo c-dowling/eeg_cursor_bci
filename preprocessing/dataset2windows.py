@@ -28,20 +28,86 @@ def session2windows(in_dir, file, d, w, o, data, labels, temp_dim=False):
     return data, labels
 
 
-def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o):
+def session2windows_ttype(in_dir, file, d, w, o, train_data, train_labels, lr_data, lr_labels, ud_data, ud_labels,
+                          twod_data, twod_labels, temp_dim=False):
+    try:
+        sess = Session(file, in_dir)
+    except:
+        sys.exit("ERROR: Corrupted file")
+    D = int(d * sess.SRATE)
+    W = int(w * sess.SRATE)
+    O = int(W * o)
+
+    for i in range(6):
+        for j in range(50):
+            t = j+i*75
+            trial_data = sess.cut_eeg(t, sess.SRATE)
+            file = os.path.splitext(file)[0]
+            train_data, train_labels = sess.bin_trial(trial_data, t, train_data, train_labels, W, O, D, temp_dim)
+
+    for i in range(2):
+        for j in range(50,75):
+            t = j+i*225
+            trial_data = sess.cut_eeg(t, sess.SRATE)
+            file = os.path.splitext(file)[0]
+            lr_data, lr_labels = sess.bin_trial(trial_data, t, lr_data, lr_labels, W, O, D, temp_dim)
+
+    for i in range(2):
+        for j in range(125,150):
+            t = j+i*225
+            trial_data = sess.cut_eeg(t, sess.SRATE)
+            file = os.path.splitext(file)[0]
+            ud_data, ud_labels = sess.bin_trial(trial_data, t, ud_data, ud_labels, W, O, D, temp_dim)
+
+    for i in range(2):
+        for j in range(200,225):
+            t = j+i*225
+            trial_data = sess.cut_eeg(t, sess.SRATE)
+            file = os.path.splitext(file)[0]
+            twod_data, twod_labels = sess.bin_trial(trial_data, t, twod_data, twod_labels, W, O, D, temp_dim)
+
+    return train_data, train_labels, lr_data, lr_labels, ud_data, ud_labels, twod_data, twod_labels
+
+
+def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o, split_by_ttype=False):
     files = os.listdir(in_dir)
     files.sort()
 
     for f in files:
         print("Processing " + f)
-        data = []
-        labels = []
-        data, labels = session2windows(in_dir, f, d, w, o, data, labels, temp_dim)
+        if split_by_ttype:
+            train_data = []
+            train_labels = []
+            lr_data = []
+            lr_labels = []
+            ud_data = []
+            ud_labels = []
+            twod_data = []
+            twod_labels = []
+            train_data, train_labels, lr_data, lr_labels, ud_data, ud_labels, twod_data, twod_labels = \
+            session2windows_ttype(in_dir, f, d, w, o, train_data, train_labels, lr_data, lr_labels, ud_data, ud_labels,
+                                  twod_data, twod_labels, temp_dim)
 
-        hf = h5py.File(os.path.join(out_dir, file_name + "_" + os.path.splitext(f)[0] + '.h5'), 'w')
-        hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
-        hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
-        hf.close()
+            hf = h5py.File(os.path.join(out_dir, file_name + "_" + os.path.splitext(f)[0] + '.h5'), 'w')
+            hf.create_dataset('train_data', data=train_data, compression="gzip", compression_opts=9)
+            hf.create_dataset('train_labels', data=train_labels, compression="gzip", compression_opts=9)
+            hf.create_dataset('lr_data', data=lr_data, compression="gzip", compression_opts=9)
+            hf.create_dataset('lr_labels', data=lr_labels, compression="gzip", compression_opts=9)
+            hf.create_dataset('ud_data', data=ud_data, compression="gzip", compression_opts=9)
+            hf.create_dataset('ud_labels', data=ud_labels, compression="gzip", compression_opts=9)
+            hf.create_dataset('twod_data', data=twod_data, compression="gzip", compression_opts=9)
+            hf.create_dataset('twod_labels', data=twod_labels, compression="gzip", compression_opts=9)
+            hf.close()
+
+        else:
+            data = []
+            labels = []
+            data, labels = session2windows(in_dir, f, d, w, o, data, labels, temp_dim)
+
+            hf = h5py.File(os.path.join(out_dir, file_name + "_" + os.path.splitext(f)[0] + '.h5'), 'w')
+            hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
+            hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
+            hf.close()
 
 
 def usage():
@@ -85,4 +151,4 @@ if __name__ == "__main__":
     if(not os.path.exists(sys.argv[2])):
         os.mkdir(sys.argv[2])
 
-    dataset2windows(sys.argv[1], sys.argv[2], sys.argv[3], temp_dim, d, w, o)
+    dataset2windows(sys.argv[1], sys.argv[2], sys.argv[3], temp_dim, d, w, o, split_by_ttype=True)

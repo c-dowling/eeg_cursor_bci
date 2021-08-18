@@ -23,7 +23,7 @@ def main():
     data_loaders = init_data_loaders(params)
 
     # Train and test model
-    model = BCINet(in_channels=1, out_features=4, kernel_size=3, dropout=0.1)
+    model = BCINet(in_channels=1, out_features=4, kernel_size=3, dropout=0.1).to(params['device'])
     print("Model Number Parameters = ", count_parameters(model))
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])

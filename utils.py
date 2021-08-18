@@ -31,29 +31,42 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
     
 
-def init_data_loaders(params, isTemporal=False):
-    dataset = concat_datasets(params["in_dir"], isTemporal)
+def init_data_loaders(params):
+    """
+    Initialise all train, validation and test dataloaders
+    args:
+    params: parameters from params.json file
+    """
 
+    datasets = concat_datasets(params["in_dir"], params['is_temporal'])
+    data_loaders = {}
 
-    total_size = len(dataset)
-    train_size = int(params["split_size"][0] * total_size)
-    valid_size = int(params["split_size"][1] * total_size)
-    test_size = total_size - train_size - valid_size
+    for state in datasets.keys():
+        # Generate train and validation dataloaders
+        if state == 'train':
+            total_size = len(datasets[state])
+            train_size = int(params["split_size"][0] * total_size)
 
-    indices = list(range(total_size))
-    np.random.shuffle(indices)
-    train_idx = indices[valid_size + test_size:]
-    valid_idx = indices[:valid_size]
-    test_idx = indices[valid_size:valid_size + test_size]
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_idx)
-    valid_sampler = SequentialSampler(valid_idx)
-    test_sampler = SequentialSampler(test_idx)
+            indices = list(range(total_size))
+            np.random.shuffle(indices)
 
-    trainloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=train_sampler)
-    validloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
-    testloader = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+            train_idx = indices[:train_size]
+            valid_idx = indices[train_size:]
 
-    return trainloader, validloader, testloader
+            train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_idx)
+            valid_sampler = SequentialSampler(valid_idx)
+
+            data_loaders['train'] = DataLoader(datasets[state], batch_size=params["batch_size"], num_workers=2, sampler=train_sampler)
+            data_loaders['validation'] = DataLoader(datasets[state], batch_size=params["batch_size"], num_workers=2, sampler=valid_sampler)
+
+        # Create a test dataloader
+        else:
+            test_idx = len(datasets[state])
+            test_sampler = SequentialSampler(test_idx)
+
+            data_loaders['test_' + state] = DataLoader(datasets[state], batch_size=params["batch_size"], num_workers=2, sampler=test_sampler)
+
+    return data_loaders
 
 
 class EarlyStopping:

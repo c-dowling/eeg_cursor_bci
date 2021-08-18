@@ -4,7 +4,6 @@ from utils import set_seed, EarlyStopping, train, test, init_data_loaders
 import torch.optim as optim
 from models.spacial import BCINet
 from models.temporal import TemporalModel_LSTM
-import json
 from preprocessing.dataloaders import concat_datasets
 from utils import count_parameters
 from torch.utils.data import DataLoader
@@ -21,31 +20,23 @@ def main():
     # Set seed for reproducibility
     set_seed(1234)
 
-    trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
-    
+    data_loaders = init_data_loaders(params)
 
     # Train and test model
-    model = TemporalModel_LSTM(
-        channels = 62,
-        window = 40,
-        hidden_size = 20,
-        C = 4,
-        num_layers = 1).to(params['device'])
-    print("Model Number Parameters = {}".format(count_parameters(model)))
+    model = BCINet(in_channels=1, out_features=4, kernel_size=3, dropout=0.1)
+    print("Model Number Parameters = ", count_parameters(model))
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
     
-    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
-    del trainloader, validloader
+    train(model, {'Train': data_loaders['train'], 'Valid': data_loaders['validation']}, optimizer, criterion, params, callback=early_stopping)
 
-    test(model, testloader, criterion, params)
-    del testloader
-
-    dataset = concat_datasets(params["sess2_dir"], True)
-    testloader_session2 = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2)
-    test(model, testloader_session2, criterion, params)
-
+    print()
+    for state in data_loaders.keys():
+        if state.startswith('test'):
+            print("Results for this parameter: ", state[5:])
+            test(model, data_loaders[state], criterion, params)
+            print()
 
 if __name__ == "__main__":
     main()

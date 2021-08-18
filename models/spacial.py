@@ -41,7 +41,7 @@ class BCINet(nn.Module):
         dropout = nn.Dropout(dropout)
         avg2dpool1 = nn.AvgPool2d(kernel_size=(1, 56), stride=(1, 14))
         flatten = nn.Flatten(start_dim=1)
-        linear1 = nn.Linear(in_features=1280, out_features=out_features)
+        linear1 = nn.Linear(in_features=1240, out_features=out_features)
         self.model = nn.Sequential(tcn1, spatial_filter_1, batch_norm, elu, dropout, avg2dpool1, flatten, linear1)
 
     def forward(self, x):

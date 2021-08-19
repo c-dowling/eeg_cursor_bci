@@ -97,16 +97,16 @@ class TemporalModel_LSTM(nn.Module):
         self.channelFeatureExtractor = ChannelFeatureExtractor()
         self.avg_pool = nn.AvgPool2d((1,2), stride=(1,2))
         self.spatialFeatureExtractor = SpatialFeatureExtractor()
-        self.temporalFeatureExtractor = nn.LSTM(channels*window*4//2, hidden_size, num_layers, bidirectional=True, batch_first = True, dropout=0.5)
+        self.temporalFeatureExtractor = nn.LSTM(channels*window*4, hidden_size, num_layers, bidirectional=True, batch_first = True, dropout=0.5)
         self.classifier = Classifier(hidden_size*num_layers*2, self.C, isTwoHead=twoHead)
 
     def forward(self, x):
         B, S, C, H, W = x.shape
         x = x.view(B * S, C, H, W)
-        #x = self.channelFeatureExtractor(x)
+        x = self.channelFeatureExtractor(x)
         #x = self.avg_pool(x)
         x = self.spatialFeatureExtractor(x)
-        x = self.avg_pool(x)
+        #x = self.avg_pool(x)
         x = x.view(B, S, -1)
         _, x = self.temporalFeatureExtractor(x)
         x = x[0].permute(1, 0, 2)

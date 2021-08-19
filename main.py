@@ -18,7 +18,7 @@ def main():
     params['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Set seed for reproducibility
-    set_seed(1234)
+    set_seed(params['seed'])
 
     data_loaders = init_data_loaders(params)
 

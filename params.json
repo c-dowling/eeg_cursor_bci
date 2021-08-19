@@ -4,5 +4,6 @@
     "batch_size": 256,
     "lr" : 1e-3,
     "epochs": 20,
-    "is_temporal": false
+    "is_temporal": false,
+    "seed": 1234,
 }

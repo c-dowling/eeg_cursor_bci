@@ -1,4 +1,5 @@
 import copy
+import os
 import random
 
 import matplotlib.pyplot as plt
@@ -15,6 +16,11 @@ import copy
 
 # Create writer to track training and testing evolution
 writer = SummaryWriter()
+
+
+# Check if weight folder exist
+ if not os.path.exists('weights/'):
+     os.mkdir('weights/')
 
 
 def set_seed(seed):
@@ -156,6 +162,8 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
             validation_loss = epoch_loss / epoch_inputs
             if callback(model, validation_loss, epoch):
                 break
+
+    torch.save(model.state_dict(), f'weights/model_epochs_{params["epochs"]}_seed_{params["seed"]}.pt')
 
 
 def test(model, dataloader, criterion, params):

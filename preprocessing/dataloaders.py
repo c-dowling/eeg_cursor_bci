@@ -7,13 +7,20 @@ from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, file_name):
+    def __init__(self, file_name, split=False, state=None):
         try:
             f = h5py.File(file_name, 'r')
         except FileNotFoundError:
             sys.exit("Unable to open {}".format(file_name))
-        self.data = f.get('data')[()]
-        self.labels = f.get('labels')[()] - 1
+        if split:
+            try:
+                self.data = f.get(state+"_data")[()]
+                self.labels = f.get(state+"_labels")[()] - 1
+            except ValueError("ERROR: Unacceptable value given for 'state'."):
+                sys.exit()
+        else:
+            self.data = f.get('data')[()]
+            self.labels = f.get('labels')[()] - 1
 
     def __len__(self):
         return self.data.shape[0]
@@ -28,14 +35,25 @@ class CustomDataset(Dataset):
         return data, label
 
 
+class CustomSplitDataset():
+    def __init__(self):
+        self.train = CustomDataset(split=True,state="train")
+        self.test_lr = CustomDataset(split=True,state="lr")
+        self.test_ud = CustomDataset(split=True,state="ud")
+        self.test_twod = CustomDataset(split=True,state="twod")
+
+
+
+
 class CustomTemporalDataset(Dataset):
     def __init__(self, file_name):
         try:
             f = h5py.File(file_name, 'r')
         except FileNotFoundError:
             sys.exit("Unable to open {}".format(file_name))
-        self.data = f['data']
-        self.labels = f['labels']
+        self.data = f.get('data')[()]
+        self.labels = f.get('labels')[()]-1
+        print(self.data.shape)
 
     def __len__(self):
         return self.data.shape[0]
@@ -43,20 +61,23 @@ class CustomTemporalDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
-        data = torch.FloatTensor(self.data[idx, :, :]).unsqueeze(1)
+            
+        data = torch.FloatTensor(self.data[idx,:,:,:]).unsqueeze(1)
         label = torch.LongTensor(self.labels[idx]).squeeze()
 
         return data, label
 
-
-def concat_datasets(input_dir):
+def concat_datasets(input_dir, isTemporal = False):
     datasets = []
     file_names = os.listdir(input_dir)
     file_names.sort()
     for f in file_names:
         if (f.endswith('.h5')):
-            datasets.append(CustomDataset(os.path.join(input_dir, f)))
+            if isTemporal:
+                datasets.append(CustomTemporalDataset(os.path.join(input_dir,f)))
+            else:
+                datasets.append(CustomDataset(os.path.join(input_dir,f)))
+
     datasets = torch.utils.data.ConcatDataset(datasets)
     return datasets
 

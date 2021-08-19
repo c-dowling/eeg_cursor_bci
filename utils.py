@@ -11,6 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
 from preprocessing.dataloaders import concat_datasets, SequentialSampler
+import copy
 
 
 # Create writer to track training and testing evolution
@@ -32,8 +33,13 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def init_data_loaders(params):
-    dataset = concat_datasets(params["in_dir"])
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+
+def init_data_loaders(params, isTemporal=False):
+    dataset = concat_datasets(params["in_dir"], isTemporal)
+
 
     total_size = len(dataset)
     train_size = int(params["split_size"][0] * total_size)
@@ -132,7 +138,9 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                 probabilities = F.softmax(outputs, dim=1)
                 epoch_loss += loss.sum().item()
                 epoch_correct += probabilities.gather(1, labels.view(-1, 1)).sum().item()
+                
                 epoch_inputs += len(labels)
+                
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
 

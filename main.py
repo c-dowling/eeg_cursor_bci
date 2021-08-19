@@ -43,7 +43,7 @@ def main():
     model = TemporalModel_LSTM(
         channels = 62,
         window = 40,
-        hidden_size = 20,
+        hidden_size = 10,
         C = 4,
         num_layers = 1).to(params['device'])
 

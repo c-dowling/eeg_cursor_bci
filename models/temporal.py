@@ -47,7 +47,7 @@ class ChannelFeatureExtractor(nn.Module):
 class SpatialFeatureExtractor(nn.Module):
     def __init__(self):
         super(SpatialFeatureExtractor, self).__init__()
-        self.block1 = Block(1, 4, 3, padding=1)
+        self.block1 = Block(4, 4, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(4)
 
     def forward(self, x):

@@ -133,7 +133,7 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                     loss = criterion(outputs, labels)
 
                     if phase == 'Train':
-                        loss.backward()
+                        loss.mean().backward()
                         optimizer.step()
                 
                 probabilities_task = F.softmax(outputs, dim=1)

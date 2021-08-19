@@ -27,7 +27,7 @@ def main():
     print("Model Number Parameters = ", count_parameters(model))
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
-    criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    criterion = torch.nn.CrossEntropyLoss(reduction='none')
     
     train(model, {'Train': data_loaders['train'], 'Valid': data_loaders['validation']}, optimizer, criterion, params, callback=early_stopping)
 

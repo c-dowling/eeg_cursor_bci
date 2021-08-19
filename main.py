@@ -26,7 +26,8 @@ def main():
     datasets = CustomSplitTemporalDataset(params["in_dir"])
     train_loader = DataLoader(datasets.train,
                             batch_size=params["batch_size"],
-                            num_workers=2)
+                            num_workers=2,
+                            shuffle=True)
     test_lr_loader = DataLoader(datasets.test_lr,
                             batch_size=params["batch_size"],
                             num_workers=2)

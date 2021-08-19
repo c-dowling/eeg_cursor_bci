@@ -49,7 +49,7 @@ def main():
 
     
     
-    early_stopping = EarlyStopping(patience=10)
+    early_stopping = EarlyStopping(patience=5)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
     

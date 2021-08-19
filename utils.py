@@ -124,10 +124,9 @@ def train(model, dataloaders, optimizer, criterion, params, callback=None):
                         loss.mean().backward()
                         optimizer.step()
 
-                probabilities_task = F.softmax(outputs, dim=1)
-                _, predicted_task = torch.max(probabilities_task, 1)
+                probabilities = F.softmax(outputs, dim=1)
                 epoch_loss += loss.sum().item()
-                epoch_correct += (predicted_task == labels).sum().item()
+                epoch_correct += probabilities.gather(1, labels.view(-1, 1)).sum().item()
                 epoch_inputs += len(labels)
                 bar.set_postfix_str(f'Loss {phase}: {epoch_loss / epoch_inputs:.4f}, '
                                     f'Acc {phase}: {epoch_correct / epoch_inputs:.4f}')
@@ -159,16 +158,16 @@ def test(model, dataloader, criterion, params):
             outputs = model(inputs)
             loss = criterion(outputs, labels)
 
-            probabilities_task = F.softmax(outputs, dim=1)
-            _, predicted_task = torch.max(probabilities_task, 1)
+            probabilities = F.softmax(outputs, dim=1)
+            _, predicted_dir = torch.max(probabilities, 1)
             test_loss += loss.sum().item()
-            test_correct += (predicted_task == labels).sum().item()
+            test_correct += probabilities.gather(1, labels.view(-1, 1)).sum().item()
             test_inputs += len(labels)
             bar.set_postfix_str(f'Loss Test: {test_loss / test_inputs:.4f}, '
                                 f'Acc Test: {test_correct / test_inputs:.4f}')
 
             for i_label, label in enumerate(labels):
-                confusion_matrix[label, predicted_task[i_label]] += 1
+                confusion_matrix[label, predicted_dir[i_label]] += 1
 
     fig = plt.figure(figsize=(7, 7))
     plot_confusion(confusion_matrix, ['Right', 'Left', 'Up', 'Down'])

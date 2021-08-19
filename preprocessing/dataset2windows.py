@@ -11,62 +11,74 @@ import h5py
 import numpy as np
 
 
-def session2windows(in_dir, file, d, w, o, data_shape, temp_dim=False):
+def session2windows(in_dir, file, d, w, o, channels, temp_dim=False):
     try:
         sess = Session(file, in_dir)
     except:
         sys.exit("ERROR: Corrupted file")
-    
+
     D = int(d * sess.SRATE)
     W = int(w * sess.SRATE)
     O = int(W * o)
 
+    samples = []
+    n_trials = sess.get_num_trials()
+    for t in range(0,n_trials):
+        trial_data = sess.cut_eeg(t, sess.SRATE)
+        if(temp_dim):
+            timestepsInBin = (D-O) // (W-O)
+            n = ((trial_data.shape[1]-O)//(W-O))- timestepsInBin+1
+        else:
+            n = (trial_data.shape[1]-O) // (W - O)
+        samples.append(n)
+
+    samples = np.array(samples)
+    samples[np.where(samples < 0)[0]] = 0
+
+    if(temp_dim):
+        data_shape = (sum(samples),timestepsInBin,channels,W)
+    else:
+        data_shape = (sum(samples),channels,W)
+
     data, labels = sess.get_bin_session(data_shape, W, O, D, temp_dim)
 
-    return data, labels
+    return data, labels, samples
 
 
 def dataset2windows(in_dir, out_dir, file_name, temp_dim, d, w, o, channels):
     files = os.listdir(in_dir)
     files.sort()
     
-    samples = []
-    for f in files:
-        sess = Session(f, in_dir)
-        D = int(d * sess.SRATE)
-        W = int(w * sess.SRATE)
-        O = int(W * o)
-        n_trials = sess.get_num_trials()
-        data_shapes = []
-        for t in range(0,n_trials):
-            trial_data = sess.cut_eeg(t, sess.SRATE)
-            if(temp_dim):
-                timestepsInBin = (D-O) // (W-O)
-                n = ((trial_data.shape[1]-O)//(W-O))- timestepsInBin+1
-            else:
-                n = (trial_data.shape[1]-O) // (W - O)
-            samples.append(n)
-
-        samples = np.array(samples)
-        samples[np.where(samples < 0)[0]] = 0
-
-        if(temp_dim):
-            data_shapes.append((sum(samples),timestepsInBin,channels,W))
-        else:
-            data_shapes.append((sum(samples),channels,W))
-        
     
     for idx,f in enumerate(files):
         print("Processing " + f)
         
-        data, labels = session2windows(in_dir, f, d, w, o, data_shapes[idx], temp_dim)
-        print(np.arange(0,450,25))
+        data, labels, samples = session2windows(in_dir, f, d, w, o, channels, temp_dim)
+
+        
+        samples = np.cumsum(samples)[np.arange(0,450,25)[1:]]
+        data = np.array(np.split(data,samples))
+        labels = np.array(np.split(labels,samples))
+        run_labels = list(np.array([1,1,2,1,1,3,1,1,4,1,1,2,1,1,3,1,1,4]).argsort())
+        data = list(data[run_labels])
+        labels = list(labels[run_labels])
+        
+
+        #init_shape = tuple(init_shape)
         hf = h5py.File(os.path.join(out_dir, file_name + "_" + os.path.splitext(f)[0] + '.h5'), 'w')
         
-        #hf.create_dataset('data', data=data, compression="gzip", compression_opts=9)
-        #hf.create_dataset('labels', data=labels, compression="gzip", compression_opts=9)
-        
-        
+        hf.create_dataset('test_2d_data', data=np.concatenate(data[-2:]), compression="gzip")
+        hf.create_dataset('test_2d_labels', data=np.concatenate(labels[-2:]), compression="gzip")
+        del data[-2:], labels[-2:]
+        hf.create_dataset('test_ud_data', data=np.concatenate(data[-2:]), compression="gzip")
+        hf.create_dataset('test_ud_labels', data=np.concatenate(labels[-2:]), compression="gzip")
+        del data[-2:], labels[-2:]
+        hf.create_dataset('test_lr_data', data=np.concatenate(data[-2:]), compression="gzip")
+        hf.create_dataset('test_lr_labels', data=np.concatenate(labels[-2:]), compression="gzip")
+        del data[-2:], labels[-2:]
+        hf.create_dataset('train_data', data=np.concatenate(data), compression="gzip")
+        hf.create_dataset('train_labels', data=np.concatenate(labels), compression="gzip")
+        del data, labels
         hf.close()
 
 

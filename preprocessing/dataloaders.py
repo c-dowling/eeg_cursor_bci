@@ -30,14 +30,21 @@ class CustomDataset(Dataset):
 
 
 class CustomTemporalDataset(Dataset):
-    def __init__(self, file_name):
+    def __init__(self, file_name, split=False, state=None):
         try:
             f = h5py.File(file_name, 'r')
         except FileNotFoundError:
             sys.exit("Unable to open {}".format(file_name))
-        self.data = f.get('data')[()]
-        self.labels = f.get('labels')[()]-1
-        print(self.data.shape)
+
+        if split:
+            try:
+                self.data = f.get(state+"_data")[()]
+                self.labels = f.get(state+"_labels")[()] - 1
+            except ValueError("ERROR: Unacceptable value given for 'state'."):
+                sys.exit()
+        else:
+            self.data = f.get('data')[()]
+            self.labels = f.get('labels')[()] - 1
 
     def __len__(self):
         return self.data.shape[0]
@@ -46,10 +53,17 @@ class CustomTemporalDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
             
-        data = torch.FloatTensor(self.data[idx,:,:,:]).unsqueeze(1)
-        label = torch.LongTensor(self.labels[idx]).squeeze()
+        data = torch.FloatTensor(self.data[idx]).unsqueeze(1)
+        label = torch.LongTensor([self.labels[idx]]).squeeze()
 
         return data, label
+
+class CustomSplitTemporalDataset():
+    def __init__(self, file):
+        self.train = CustomTemporalDataset(file, split=True,state="train")
+        self.test_lr = CustomTemporalDataset(file, split=True,state="test_lr")
+        self.test_ud = CustomTemporalDataset(file, split=True,state="test_ud")
+        self.test_2d = CustomTemporalDataset(file, split=True,state="test_2d")
 
 def concat_datasets(input_dir, isTemporal = False):
     datasets = []

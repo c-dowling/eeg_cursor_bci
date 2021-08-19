@@ -1,5 +1,5 @@
 {
-    "in_dir": "/content/drive/MyDrive/bin_data/temporal/sess1_20ovl",
+    "in_dir": "../temporal_bin_data/train_dataset_S1_Session_1.h5",
     "sess2_dir": "/content/drive/MyDrive/bin_data/temporal/sess2",
     "split_size": [0.8, 0.1, 0.1],
     "batch_size": 256,

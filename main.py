@@ -8,6 +8,7 @@ import json
 from preprocessing.dataloaders import concat_datasets
 from utils import count_parameters
 from torch.utils.data import DataLoader
+from preprocessing.dataloaders import CustomSplitTemporalDataset
 
 
 
@@ -21,8 +22,21 @@ def main():
     # Set seed for reproducibility
     set_seed(1234)
 
-    trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
-    
+    #trainloader, validloader, testloader = init_data_loaders(params, isTemporal=True)
+    datasets = CustomSplitTemporalDataset(params["in_dir"])
+    train_loader = DataLoader(datasets.train,
+                            batch_size=params["batch_size"],
+                            num_workers=2)
+    test_lr_loader = DataLoader(datasets.test_lr,
+                            batch_size=params["batch_size"],
+                            num_workers=2)
+    test_ud_loader = DataLoader(datasets.test_ud,
+                            batch_size=params["batch_size"],
+                            num_workers=2)
+    test_2d_loader = DataLoader(datasets.test_2d,
+                            batch_size=params["batch_size"],
+                            num_workers=2)
+
 
     # Train and test model
     model = TemporalModel_LSTM(
@@ -32,22 +46,26 @@ def main():
         C = 4,
         num_layers = 1).to(params['device'])
 
-    print("Model Number Parameters = {}".format(count_parameters(model)))
+    
     
     early_stopping = EarlyStopping(patience=10)
     optimizer = optim.Adam(model.parameters(), params['lr'])
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
     
-    train(model, {'Train': trainloader, 'Valid': validloader}, optimizer, criterion, params, callback=early_stopping)
-    del trainloader, validloader
+    print("TRAINING MODEL ...")
+    train(model, {'Train':  train_loader}, optimizer, criterion, params, callback=early_stopping)
 
-    test(model, testloader, criterion, params)
-    del testloader
-    '''
-    dataset = concat_datasets(params["sess2_dir"], True)
-    testloader_session2 = DataLoader(dataset, batch_size=params["batch_size"], num_workers=2)
-    test(model, testloader_session2, criterion, params)
-    '''
+    print("TESTING MODEL ON LR TRIALS ...")
+    test(model, test_lr_loader, criterion, params)
+
+    print("TESTING MODEL ON UD TRIALS ...")
+    test(model, test_ud_loader, criterion, params)
+
+    print("TESTING MODEL ON 2D TRIALS ...")
+    test(model, test_2d_loader, criterion, params)
+    
+    
+    print("MODEL NUMBER PARAMETERS : {}".format(count_parameters(model)))
 
 
 if __name__ == "__main__":

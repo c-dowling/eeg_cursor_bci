@@ -83,7 +83,7 @@ class EarlyStopping:
 def train(model, dataloaders, optimizer, criterion, params, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
     for epoch in range(params['epochs']):
-        for phase in ['Train', 'Valid']:
+        for phase in ['Train']:
             if phase == 'Train':
                 model.train()
             else:

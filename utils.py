@@ -111,6 +111,10 @@ def plot_confusion(matrix, labels):
 
 def train(model, dataloaders, optimizer, criterion, params, callback=None):
     """Train the model for num_epochs using the trainloader and validloader."""
+    example_input = torch.tensor(dataloaders['Train'].dataset.data[1:][0])[None, None, :, :]  # Unsqueeze input to (1, 1, 62, 500)
+    example_input = example_input.to(params['device'])
+    writer.add_graph(model, input_to_model=example_input)
+    
     for epoch in range(params['epochs']):
         for phase in ['Train', 'Valid']:
             if phase == 'Train':

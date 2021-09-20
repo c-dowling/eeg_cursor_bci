@@ -176,8 +176,8 @@ class Session:
             - end_t (int): number of ms after target presentation to include in cut (includes bound)
             - binlength (int) - Length of each window (samples)
             - delay (int) - Delay between bins (samples)
-            - overlap (int) - _____________________
-            - temp_dim (int) - _____________________
+            - overlap (int) - Samples that overlap between windows (samples)
+            - temp_dim (int) - Whether to use temporal windowing or not
         Returns:
             - inputs (array): A 3D array of EEG data for each window (window x channels x time)
             - labels (array): A 1D array of intended cursor direction for each bin
